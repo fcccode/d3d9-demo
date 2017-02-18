@@ -21,4 +21,5 @@ void on_reset(int width, int height) {
 
 void on_render(int dtime) {
     g_direct3d->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, 0xffeeeeee, 1.0f, 0);
+    g_direct3d->Present(NULL, NULL, NULL, NULL);
 }

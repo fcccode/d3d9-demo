@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
 
 #include <windows.h>
 #include <d3d9.h>
@@ -77,12 +76,13 @@ IDirect3DDevice9 *g_direct3d;
     } while (false)
 
 static void direct3d_init(HWND window) {
+    D3DDEVTYPE type = D3DDEVTYPE_HAL;
+
     g_d3dobject = Direct3DCreate9(D3D_SDK_VERSION);
     if (g_d3dobject == NULL) {
         fatal(__FILE__, __LINE__, "Direct3DCreate9");
     }
 
-    D3DDEVTYPE type = D3DDEVTYPE_HAL;
     D3DDISPLAYMODE mode;
     OK_3D(g_d3dobject->GetAdapterDisplayMode(D3DADAPTER_DEFAULT, &mode));
     OK_3D(g_d3dobject->CheckDeviceType(D3DADAPTER_DEFAULT, type,
@@ -152,11 +152,11 @@ static bool direct3d_is_loss() {
 
 // window stuffs
 
-static bool g_inited = false;
+static bool g_ready = false;
 static bool g_paused = false;
 
-static void window_fullscreen(HWND window, bool enabled) {
-    if (enabled) {
+static void window_fullscreen(HWND window, bool enable) {
+    if (enable) {
         if (!g_d3dpresent.Windowed) {
             return;
         }
@@ -173,7 +173,7 @@ static void window_fullscreen(HWND window, bool enabled) {
         SetWindowPos(window, HWND_TOP, 0, 0, width, height,
                      SWP_NOZORDER | SWP_SHOWWINDOW);
     } else {
-        if(g_d3dpresent.Windowed) {
+        if (g_d3dpresent.Windowed) {
             return;
         }
 
@@ -196,7 +196,7 @@ static void window_fullscreen(HWND window, bool enabled) {
 
 static LRESULT CALLBACK window_proc(HWND hwnd, UINT uMsg,
                                     WPARAM wParam, LPARAM lParam) {
-    if (g_inited == false) {
+    if (g_ready == false) {
         return DefWindowProc(hwnd, uMsg, wParam, lParam);
     } else {
         static bool min_or_max = false;
@@ -261,7 +261,7 @@ static LRESULT CALLBACK window_proc(HWND hwnd, UINT uMsg,
     }
 }
 
-static HWND window_create() {
+static void window_init(HWND *window) {
     const char *class_name = "Direct3DWindowClass";
 
     WNDCLASS wc;
@@ -284,19 +284,20 @@ static HWND window_create() {
     int width = rect.right;
     int height = rect.bottom;
 
-    HWND window = CreateWindow(class_name, g_config.title, WS_OVERLAPPEDWINDOW,
-                               g_config.x, g_config.y, width, height,
-                               NULL, NULL, GetModuleHandleW(NULL), NULL);
-    if (window == NULL) {
+    *window = CreateWindow(class_name, g_config.title, WS_OVERLAPPEDWINDOW,
+                           g_config.x, g_config.y, width, height,
+                           NULL, NULL, GetModuleHandleW(NULL), NULL);
+    if (*window == NULL) {
         fatal(__FILE__, __LINE__, "CreateWindow");
     }
 
-    ShowWindow(window, SW_SHOW);
-    UpdateWindow(window);
-    return window;
+    ShowWindow(*window, SW_SHOW);
+    UpdateWindow(*window);
 }
 
-static int window_eventloop() {
+// eventloop function
+
+static int eventloop() {
     LARGE_INTEGER frequency;
     QueryPerformanceFrequency(&frequency);
     float period = 1.0f / frequency.QuadPart;
@@ -306,18 +307,21 @@ static int window_eventloop() {
 
     MSG message;
     message.message = WM_NULL;
-    while(message.message != WM_QUIT) {
+    while (message.message != WM_QUIT) {
         if (PeekMessage(&message, 0, 0, 0, PM_REMOVE)) {
-            TranslateMessage( &message );
-            DispatchMessage( &message );
+            TranslateMessage(&message);
+            DispatchMessage(&message);
         } else {
             if (g_paused) {
                 Sleep(20);
             } else if (direct3d_is_loss() == false) {
                 LARGE_INTEGER curr_time;
                 QueryPerformanceCounter(&curr_time);
-                float dtime = (curr_time.QuadPart - prev_time.QuadPart) * period;
+                float dcount = curr_time.QuadPart - prev_time.QuadPart;
+                float dtime = dcount * period;
+
                 on_render(dtime);
+
                 prev_time = curr_time;
             }
         }
@@ -325,15 +329,21 @@ static int window_eventloop() {
     return message.wParam;
 }
 
+// main function
+
 int main() {
+    HWND window;
+
     on_setup(&g_config);
-    HWND window = window_create();
+
+    window_init(&window);
     direct3d_init(window);
     input_init(window);
-    g_inited = true;
+    g_ready = true;
+
     on_ready();
 
-    window_eventloop();
+    eventloop();
 
     direct3d_free();
     input_free();
