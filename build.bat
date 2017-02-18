@@ -23,6 +23,7 @@ if defined VS150COMNTOOLS (
     call "%VS80COMNTOOLS%vsvars32.bat"
 ) else (
     echo Visual Studio None
+    goto :pause
 )
 
 set D3DX9=%~dp0d3dx9\
@@ -30,7 +31,10 @@ set D3DX9=%~dp0d3dx9\
 set OPTS=/nologo /I"%D3DX9%include" /DDIRECTINPUT_VERSION=0x0800
 set LINK=/LIBPATH:"%D3DX9%lib\x86"
 
-set SRCS=application.cpp framework.cpp
+set SRCS=application.cpp framework.cpp input.cpp
 set LIBS=d3d9.lib d3dx9d.lib dinput8.lib dxguid.lib kernel32.lib user32.lib gdi32.lib
 
 cl %OPTS% %SRCS% %LIBS% /link %LINK%
+
+:pause
+pause
