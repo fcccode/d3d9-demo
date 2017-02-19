@@ -1,21 +1,11 @@
-#include <stdio.h>
-#include <stdlib.h>
-
 #include <windows.h>
 #include <d3d9.h>
 #include <dinput.h>
-
 #include "framework.h"
+#include "error.h"
 
 static bool g_inited;
 static bool g_paused;
-
-// error reporting
-
-static void fatal(const char *file, int line, const char *message) {
-    fprintf(stderr, "%s:%d %s\n", file, line, message);
-    abort();
-}
 
 // directinput stuffs
 

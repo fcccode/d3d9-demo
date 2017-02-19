@@ -28,10 +28,10 @@ if defined VS150COMNTOOLS (
 
 set D3DX9=%~dp0d3dx9\
 
-set OPTS=/I"%D3DX9%include" /DDIRECTINPUT_VERSION=0x0800 /nologo
+set OPTS=/I"%D3DX9%include" /DDIRECTINPUT_VERSION=0x0800 /nologo /EHsc
 set LINK=/LIBPATH:"%D3DX9%lib\x86"
 
-set SRCS=application.cpp framework.cpp input.cpp
+set SRCS=application.cpp framework.cpp input.cpp camera.cpp terrain.cpp heightmap.cpp error.cpp
 set LIBS=d3d9.lib d3dx9d.lib dinput8.lib dxguid.lib kernel32.lib user32.lib gdi32.lib
 
 cl %OPTS% %SRCS% %LIBS% /link %LINK%

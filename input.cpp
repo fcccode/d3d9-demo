@@ -1,6 +1,5 @@
 #include <string.h>
 #include <dinput.h>
-
 #include "input.h"
 
 Input::Input(IDirectInputDevice8 *keyboard, IDirectInputDevice8 *mouse) {
