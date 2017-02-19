@@ -33,17 +33,18 @@ void input_poll() {
     }
 }
 
-bool input_key_down(int key) {
+bool key_down(int key) {
     return (g_keyboard_state[key] & 0x80) != 0;
 }
 
-bool input_button_down(int button) {
+bool button_down(int button) {
     return (g_mouse_state.rgbButtons[button] & 0x80) != 0;
 }
 
-void input_mouse_diff(float *dx, float *dy) {
-    if (dx != NULL)
-        *dx = (float)g_mouse_state.lX;
-    if (dy != NULL)
-        *dy = (float)g_mouse_state.lY;
+float mouse_dx() {
+    return g_mouse_state.lX;
+}
+
+float mouse_dy() {
+    return g_mouse_state.lY;
 }

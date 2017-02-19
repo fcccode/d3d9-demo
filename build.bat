@@ -28,7 +28,7 @@ if defined VS150COMNTOOLS (
 
 set D3DX9=%~dp0d3dx9\
 
-set OPTS=/nologo /I"%D3DX9%include" /DDIRECTINPUT_VERSION=0x0800
+set OPTS=/I"%D3DX9%include" /DDIRECTINPUT_VERSION=0x0800 /nologo
 set LINK=/LIBPATH:"%D3DX9%lib\x86"
 
 set SRCS=application.cpp framework.cpp input.cpp

@@ -8,14 +8,10 @@ extern IDirect3DDevice9 *g_direct3d;
 extern IDirectInputDevice8 *g_keyboard;
 extern IDirectInputDevice8 *g_mouse;
 
-typedef struct {
-    const char *title;
-    int x, y;
-    int width, height;
-} config;
+void on_config(const char **title, int *width, int *height);
 
-void on_setup(config *cfg);
-void on_ready();
+void on_setup(int width, int height);
+void on_teardown();
 
 void on_loss();
 void on_reset(int width, int height);

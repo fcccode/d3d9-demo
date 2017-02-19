@@ -14,9 +14,9 @@
 void input_init(IDirectInputDevice8 *keyboard, IDirectInputDevice8 *mouse);
 void input_poll();
 
-bool input_key_down(int key);
-
-bool input_button_down(int button);
-void input_mouse_diff(float *dx, float *dy);
+bool key_down(int key);
+bool button_down(int button);
+float mouse_dx();
+float mouse_dy();
 
 #endif
