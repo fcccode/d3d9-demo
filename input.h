@@ -11,12 +11,20 @@
 #define BUTTON_L 0
 #define BUTTON_R 1
 
-void input_init(IDirectInputDevice8 *keyboard, IDirectInputDevice8 *mouse);
-void input_poll();
+class Input {
+public:
+    Input(IDirectInputDevice8 *keyboard, IDirectInputDevice8 *mouse);
+    void poll();
+    bool key_down(int key);
+    bool button_down(int button);
+    float mouse_dx();
+    float mouse_dy();
 
-bool key_down(int key);
-bool button_down(int button);
-float mouse_dx();
-float mouse_dy();
+private:
+    IDirectInputDevice8 *m_keyboard;
+    IDirectInputDevice8 *m_mouse;
+    char m_keyboard_state[256];
+    DIMOUSESTATE2 m_mouse_state;
+};
 
 #endif

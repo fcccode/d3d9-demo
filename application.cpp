@@ -12,7 +12,7 @@ void on_config(const char **title, int *width, int *height) {
 
 void on_setup(int width, int height) {
     printf("on_setup: %d, %d\n", width, height);
-    input_init(g_keyboard, g_mouse);
+    Input input(g_keyboard, g_mouse);
 }
 
 void on_teardown() {
