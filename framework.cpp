@@ -166,8 +166,8 @@ static void window_init(HWND *window, const char *title,
 
     RECT rect = {0, 0, width, height};
     AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW, 0);
-    width = rect.right;
-    height = rect.bottom;
+    width = rect.right - rect.left;
+    height = rect.bottom - rect.top;
     *window = CreateWindow(class_name, title, WS_OVERLAPPEDWINDOW,
                            CW_USEDEFAULT, CW_USEDEFAULT, width, height,
                            NULL, NULL, GetModuleHandleW(NULL), NULL);
@@ -343,9 +343,7 @@ int main() {
     direct3d_init(window);
     input_init(window);
 
-    int d3d_width = g_d3dpresent.BackBufferWidth;
-    int d3d_height = g_d3dpresent.BackBufferHeight;
-    on_setup(d3d_width, d3d_height);
+    on_setup(width, height);
     g_inited = true;
     g_paused = false;
     eventloop();
