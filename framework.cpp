@@ -10,17 +10,8 @@ static bool g_paused;
 // directinput stuffs
 
 static IDirectInput8 *g_input;
-
-IDirectInputDevice8 *g_keyboard;
-IDirectInputDevice8 *g_mouse;
-
-#define OK_DI(command)                                  \
-    do {                                                \
-        HRESULT result = (command);                     \
-        if (result != DI_OK) {                          \
-            fatal(__FILE__, __LINE__, #command);        \
-        }                                               \
-    } while (false)
+static IDirectInputDevice8 *g_keyboard;
+static IDirectInputDevice8 *g_mouse;
 
 static void input_init(HWND window) {
     DWORD cooperative_level = DISCL_FOREGROUND | DISCL_NONEXCLUSIVE;
@@ -47,22 +38,13 @@ static void input_free() {
     g_input->Release();
 }
 
-#undef OK_DI
-
 // direct3d stuffs
 
 static IDirect3D9 *g_d3dobject;
+static IDirect3DDevice9 *g_direct3d;
 static D3DPRESENT_PARAMETERS g_d3dpresent;
 
-IDirect3DDevice9 *g_direct3d;
-
-#define OK_3D(command)                                  \
-    do {                                                \
-        HRESULT result = (command);                     \
-        if (result != D3D_OK) {                         \
-            fatal(__FILE__, __LINE__, #command);        \
-        }                                               \
-    } while (false)
+static void direct3d_check(D3DDEVTYPE);
 
 static void direct3d_init(HWND window) {
     D3DDEVTYPE type = D3DDEVTYPE_HAL;
@@ -72,20 +54,7 @@ static void direct3d_init(HWND window) {
         fatal(__FILE__, __LINE__, "Direct3DCreate9");
     }
 
-    // check for hardware vertex processing
-    D3DDISPLAYMODE mode;
-    OK_3D(g_d3dobject->GetAdapterDisplayMode(D3DADAPTER_DEFAULT, &mode));
-    OK_3D(g_d3dobject->CheckDeviceType(D3DADAPTER_DEFAULT, type,
-                                       mode.Format, mode.Format,
-                                       true));
-    OK_3D(g_d3dobject->CheckDeviceType(D3DADAPTER_DEFAULT, type,
-                                       D3DFMT_X8R8G8B8, D3DFMT_X8R8G8B8,
-                                       false));
-    D3DCAPS9 caps;
-    OK_3D(g_d3dobject->GetDeviceCaps(D3DADAPTER_DEFAULT, type, &caps));
-    if ((caps.DevCaps & D3DDEVCAPS_HWTRANSFORMANDLIGHT) == 0) {
-        fatal(__FILE__, __LINE__, "D3DDEVCAPS_HWTRANSFORMANDLIGHT");
-    }
+    direct3d_check(type);
 
     g_d3dpresent.BackBufferWidth            = 0;
     g_d3dpresent.BackBufferHeight           = 0;
@@ -109,6 +78,30 @@ static void direct3d_init(HWND window) {
 static void direct3d_free() {
     g_direct3d->Release();
     g_d3dobject->Release();
+}
+
+static void direct3d_check(D3DDEVTYPE type) {
+    // check for hardware vertex processing
+    D3DDISPLAYMODE mode;
+    OK_3D(g_d3dobject->GetAdapterDisplayMode(D3DADAPTER_DEFAULT, &mode));
+    OK_3D(g_d3dobject->CheckDeviceType(D3DADAPTER_DEFAULT, type,
+                                       mode.Format, mode.Format,
+                                       true));
+    OK_3D(g_d3dobject->CheckDeviceType(D3DADAPTER_DEFAULT, type,
+                                       D3DFMT_X8R8G8B8, D3DFMT_X8R8G8B8,
+                                       false));
+    D3DCAPS9 caps;
+    OK_3D(g_d3dobject->GetDeviceCaps(D3DADAPTER_DEFAULT, type, &caps));
+    if ((caps.DevCaps & D3DDEVCAPS_HWTRANSFORMANDLIGHT) == 0) {
+        fatal(__FILE__, __LINE__, "D3DDEVCAPS_HWTRANSFORMANDLIGHT");
+    }
+    // check for shader version support
+    if (caps.VertexShaderVersion < D3DVS_VERSION(2, 0)) {
+        fatal(__FILE__, __LINE__, "VertexShaderVersion");
+    }
+    if (caps.PixelShaderVersion < D3DPS_VERSION(2, 0)) {
+        fatal(__FILE__, __LINE__, "PixelShaderVersion");
+    }
 }
 
 static void direct3d_on_loss() {
@@ -137,17 +130,15 @@ static bool direct3d_is_loss() {
     }
 }
 
-#undef OK_3D
-
 // window stuffs
 
 static LRESULT CALLBACK window_proc(HWND, UINT, WPARAM, LPARAM);
-static void window_resize(WPARAM, LPARAM);
+static void window_on_resize(WPARAM, LPARAM);
 static void window_fullscreen(HWND, bool);
 
 static void window_init(HWND *window, const char *title,
                         int width, int height) {
-    const char *class_name = "Direct3DWindowClass";
+    const char *wc_name = "Direct3DWindowClass";
 
     WNDCLASS wc;
     wc.style         = CS_HREDRAW | CS_VREDRAW;
@@ -159,7 +150,7 @@ static void window_init(HWND *window, const char *title,
     wc.hCursor       = LoadCursor(NULL, IDC_ARROW);
     wc.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
     wc.lpszMenuName  = NULL;
-    wc.lpszClassName = class_name;
+    wc.lpszClassName = wc_name;
     if (RegisterClass(&wc) == 0) {
         fatal(__FILE__, __LINE__, "RegisterClass");
     }
@@ -168,7 +159,7 @@ static void window_init(HWND *window, const char *title,
     AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW, 0);
     width = rect.right - rect.left;
     height = rect.bottom - rect.top;
-    *window = CreateWindow(class_name, title, WS_OVERLAPPEDWINDOW,
+    *window = CreateWindow(wc_name, title, WS_OVERLAPPEDWINDOW,
                            CW_USEDEFAULT, CW_USEDEFAULT, width, height,
                            NULL, NULL, GetModuleHandleW(NULL), NULL);
     if (*window == NULL) {
@@ -186,12 +177,12 @@ static LRESULT CALLBACK window_proc(HWND hwnd, UINT uMsg,
     } else {
         RECT rect;
 
-        switch(uMsg) {
+        switch (uMsg) {
             case WM_ACTIVATE:
                 g_paused = (LOWORD(wParam) == WA_INACTIVE) ? true : false;
                 return 0;
             case WM_SIZE:
-                window_resize(wParam, lParam);
+                window_on_resize(wParam, lParam);
                 return 0;
             case WM_EXITSIZEMOVE:
                 GetClientRect(hwnd, &rect);
@@ -219,7 +210,7 @@ static LRESULT CALLBACK window_proc(HWND hwnd, UINT uMsg,
     }
 }
 
-static void window_resize(WPARAM wParam, LPARAM lParam) {
+static void window_on_resize(WPARAM wParam, LPARAM lParam) {
     static bool min_or_max = false;
 
     g_d3dpresent.BackBufferWidth  = LOWORD(lParam);
@@ -343,7 +334,7 @@ int main() {
     direct3d_init(window);
     input_init(window);
 
-    on_setup(width, height);
+    on_setup(g_direct3d, width, height, g_keyboard, g_mouse);
     g_inited = true;
     g_paused = false;
     eventloop();
