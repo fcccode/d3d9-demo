@@ -57,8 +57,8 @@ void Camera::travel(Input *input, Terrain *terrain, float dtime) {
     m_pos += dtime * m_mov_speed * tangent;
     m_pos.y = terrain->get_height(m_pos.x, m_pos.z) + m_cam_height;
 
-    float r_angle = input->mouse_dx() / m_rot_speed;
-    float y_angle = input->mouse_dy() / m_rot_speed;
+    float r_angle = input->mouse_dy() / m_rot_speed;
+    float y_angle = input->mouse_dx() / m_rot_speed;
 
     D3DXMATRIX rotation;
     D3DXMatrixRotationAxis(&rotation, &m_right, r_angle);
