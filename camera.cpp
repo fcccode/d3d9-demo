@@ -74,6 +74,10 @@ void Camera::travel(Input *input, Terrain *terrain, float dtime) {
     m_view_proj = m_view * m_proj;
 }
 
+D3DXVECTOR3 Camera::get_pos() {
+    return m_pos;
+}
+
 D3DXMATRIX Camera::get_view_proj() {
     return m_view_proj;
 }

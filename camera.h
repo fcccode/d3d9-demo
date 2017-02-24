@@ -10,6 +10,8 @@ public:
     Camera(float aspect);
     void on_reset(float aspect);
     void travel(Input *input, Terrain *terrain, float dtime);
+
+    D3DXVECTOR3 get_pos();
     D3DXMATRIX get_view_proj();
 
 private:
