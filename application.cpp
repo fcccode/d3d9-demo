@@ -2,6 +2,7 @@
 #include <d3dx9.h>
 #include "framework.h"
 #include "camera.h"
+#include "crate.h"
 #include "input.h"
 #include "skybox.h"
 #include "terrain.h"
@@ -16,6 +17,7 @@ static Input *g_input;
 static Camera *g_camera;
 static Terrain *g_terrain;
 static Skybox *g_skybox;
+static Crate *g_crate;
 
 void on_config(const char **title, int *width, int *height) {
     *title = "Snowman";
@@ -33,6 +35,7 @@ void on_setup(IDirect3DDevice9 *direct3d, int width, int height,
     g_camera  = new Camera(width * 1.0f / height);
     g_terrain = new Terrain(g_direct3d);
     g_skybox  = new Skybox(g_direct3d);
+    g_crate   = new Crate(direct3d);
 }
 
 void on_teardown() {
@@ -40,6 +43,7 @@ void on_teardown() {
     delete g_camera;
     delete g_input;
     delete g_skybox;
+    delete g_crate;
 
     vertex_decl_free();
 }
@@ -65,6 +69,7 @@ void on_render(float dtime) {
     g_skybox->render(g_direct3d, g_camera->get_pos(),
                      g_camera->get_view_proj());
     g_terrain->render(g_direct3d, g_camera->get_view_proj());
+    g_crate->render(g_direct3d, g_camera->get_pos(), g_camera->get_view_proj());
 
     OK_3D(g_direct3d->EndScene());
     g_direct3d->Present(NULL, NULL, NULL, NULL);

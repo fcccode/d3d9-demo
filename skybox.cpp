@@ -40,7 +40,7 @@ void Skybox::on_reset() {
 }
 
 void Skybox::render(IDirect3DDevice9 *direct3d, D3DXVECTOR3 pos,
-                 D3DXMATRIX view_proj) {
+                    D3DXMATRIX view_proj) {
     OK_FX(m_effect->SetTechnique(m_fx_tech));
     OK_FX(m_effect->SetTexture(m_fx_envmap, m_envmap));
 
