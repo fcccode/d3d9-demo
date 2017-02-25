@@ -9,7 +9,7 @@ Camera::Camera(float aspect) {
     m_z_far  = 5000.0f;
 
     m_mov_speed  = 50.0f;
-    m_rot_speed  = 150.0f;
+    m_rot_ratio  = 150.0f;
     m_cam_height = 2.5f;
 
     m_pos   = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
@@ -21,13 +21,7 @@ Camera::Camera(float aspect) {
     D3DXMatrixIdentity(&m_proj);
     D3DXMatrixIdentity(&m_view_proj);
 
-    build_proj(aspect);
-    m_view_proj = m_view * m_proj;
-}
-
-void Camera::on_reset(float aspect) {
-    build_proj(aspect);
-    m_view_proj = m_view * m_proj;
+    set_lens(aspect);
 }
 
 void Camera::travel(Input *input, Terrain *terrain, float dtime) {
@@ -57,8 +51,8 @@ void Camera::travel(Input *input, Terrain *terrain, float dtime) {
     m_pos += dtime * m_mov_speed * tangent;
     m_pos.y = terrain->get_height(m_pos.x, m_pos.z) + m_cam_height;
 
-    float r_angle = input->mouse_dy() / m_rot_speed;
-    float y_angle = input->mouse_dx() / m_rot_speed;
+    float r_angle = input->mouse_dy() / m_rot_ratio;
+    float y_angle = input->mouse_dx() / m_rot_ratio;
 
     D3DXMATRIX rotation;
     D3DXMatrixRotationAxis(&rotation, &m_right, r_angle);
@@ -71,6 +65,11 @@ void Camera::travel(Input *input, Terrain *terrain, float dtime) {
     D3DXVec3TransformCoord(&m_look, &m_look, &rotation);
 
     build_view();
+    m_view_proj = m_view * m_proj;
+}
+
+void Camera::set_lens(float aspect) {
+    build_proj(aspect);
     m_view_proj = m_view * m_proj;
 }
 

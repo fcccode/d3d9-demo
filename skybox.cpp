@@ -4,25 +4,16 @@
 #include "error.h"
 
 Skybox::Skybox(IDirect3DDevice9 *direct3d) {
-    const char *envmap = "envmap.dds";
-    const char *effect = "sky.fx";
     int radius = 10000.0f;
     int slices = 30;
     int stacks = 30;
+    const char *effect = "skybox.fx";
+    const char *envmap = "envmap.dds";
 
-    OK_3D(D3DXCreateSphere(direct3d, radius, slices, stacks, &m_sphere, NULL));
-    OK_3D(D3DXCreateCubeTextureFromFile(direct3d, envmap, &m_envmap));
-
-    ID3DXBuffer *errors = NULL;
-    OK_3D(D3DXCreateEffectFromFile(direct3d, effect, NULL, NULL,
-                                   D3DXSHADER_DEBUG, NULL, &m_effect, &errors));
-    if (errors != NULL) {
-        fatal(__FILE__, __LINE__, (const char *)errors->GetBufferPointer());
-    }
-
-    m_fx_tech   = m_effect->GetTechniqueByName("SkyTech");
-    m_fx_mvp    = m_effect->GetParameterByName(NULL, "gWVP");
-    m_fx_envmap = m_effect->GetParameterByName(NULL, "gEnvMap");
+    m_direct3d = direct3d;
+    OK(D3DXCreateSphere(m_direct3d, radius, slices, stacks, &m_sphere, NULL));
+    build_effect(effect);
+    OK(D3DXCreateCubeTextureFromFile(m_direct3d, envmap, &m_envmap));
 }
 
 Skybox::~Skybox() {
@@ -32,29 +23,41 @@ Skybox::~Skybox() {
 }
 
 void Skybox::on_lost() {
-    OK_FX(m_effect->OnLostDevice());
+    OK(m_effect->OnLostDevice());
 }
 
 void Skybox::on_reset() {
-    OK_FX(m_effect->OnResetDevice());
+    OK(m_effect->OnResetDevice());
 }
 
-void Skybox::render(IDirect3DDevice9 *direct3d, D3DXVECTOR3 pos,
-                    D3DXMATRIX view_proj) {
-    OK_FX(m_effect->SetTechnique(m_fx_tech));
-    OK_FX(m_effect->SetTexture(m_fx_envmap, m_envmap));
+void Skybox::render(D3DXVECTOR3 cam_pos, D3DXMATRIX view_proj) {
+    OK(m_effect->SetTechnique(m_fx_tech));
+    OK(m_effect->SetTexture(m_fx_envmap, m_envmap));
 
-    D3DXMATRIX model;
-    D3DXMatrixTranslation(&model, pos.x, pos.y, pos.z);
-    D3DXMATRIX mvp = model * view_proj;
-    OK_FX(m_effect->SetMatrix(m_fx_mvp, &mvp));
+    D3DXMATRIX world;
+    D3DXMatrixTranslation(&world, cam_pos.x, cam_pos.y, cam_pos.z);
+    D3DXMATRIX wvp = world * view_proj;
+    OK(m_effect->SetMatrix(m_fx_wvp, &wvp));
 
     UINT passes = 0;
-    OK_FX(m_effect->Begin(&passes, 0));
-    OK_FX(m_effect->BeginPass(0));
+    OK(m_effect->Begin(&passes, 0));
+    OK(m_effect->BeginPass(0));
 
-    OK_3D(m_sphere->DrawSubset(0));
+    OK(m_sphere->DrawSubset(0));
 
-    OK_FX(m_effect->EndPass());
-    OK_FX(m_effect->End());
+    OK(m_effect->EndPass());
+    OK(m_effect->End());
+}
+
+void Skybox::build_effect(const char *effect) {
+    ID3DXBuffer *errors = NULL;
+    OK(D3DXCreateEffectFromFile(m_direct3d, effect, NULL, NULL,
+                                D3DXSHADER_DEBUG, NULL, &m_effect, &errors));
+    if (errors != NULL) {
+        FATAL((const char *)errors->GetBufferPointer());
+    }
+
+    m_fx_tech   = m_effect->GetTechniqueByName("SkyTech");
+    m_fx_envmap = m_effect->GetParameterByName(NULL, "gEnvMap");
+    m_fx_wvp    = m_effect->GetParameterByName(NULL, "gWVP");
 }

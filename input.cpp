@@ -1,4 +1,5 @@
 #include <string.h>
+#include <winerror.h>
 #include <dinput.h>
 #include "input.h"
 
@@ -14,13 +15,13 @@ void Input::poll() {
     HRESULT result;
 
     result = m_keyboard->GetDeviceState(sizeof(m_keyboard_state), &m_keyboard_state);
-    if (result != DI_OK) {
+    if (FAILED(result)) {
         memset(&m_keyboard_state, 0, sizeof(m_keyboard_state));
         m_keyboard->Acquire();
     }
 
     result = m_mouse->GetDeviceState(sizeof(m_mouse_state), &m_mouse_state);
-    if (result != DI_OK) {
+    if (FAILED(result)) {
         memset(&m_mouse_state, 0, sizeof(m_mouse_state));
         m_mouse->Acquire();
     }

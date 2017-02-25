@@ -8,32 +8,65 @@ class Crate {
 public:
     Crate(IDirect3DDevice9 *direct3d);
     ~Crate();
-
     void on_lost();
     void on_reset();
-    void render(IDirect3DDevice9 *direct3d, D3DXVECTOR3 pos,
-                D3DXMATRIX view_proj);
-
+    void render(D3DXVECTOR3 cam_pos, D3DXMATRIX view_proj);
 
 private:
-    void build_cube(IDirect3DDevice9 *direct3d);
-    void build_effect(IDirect3DDevice9 *direct3d);
-
+    void build_cube();
+    void write_vertices();
+    void write_indices();
+    void build_effect(const char *effect);
 
 private:
-    D3DXMATRIX m_world;
+    IDirect3DDevice9 *m_direct3d;
 
     IDirect3DVertexBuffer9 *m_vertices;
     IDirect3DIndexBuffer9 *m_indices;
 
+    D3DXMATRIX m_world;
     ID3DXEffect *m_effect;
     IDirect3DTexture9 *m_texture;
 
-    D3DXHANDLE m_fx_tech;
-    D3DXHANDLE m_fx_world;
-    D3DXHANDLE m_fx_world_it;
-    D3DXHANDLE m_fx_wvp;
-    D3DXHANDLE m_fx_eye_pos;
+    D3DXVECTOR3 mLightVecW;
+    D3DXCOLOR   mAmbientMtrl;
+    D3DXCOLOR   mAmbientLight;
+    D3DXCOLOR   mDiffuseMtrl;
+    D3DXCOLOR   mDiffuseLight;
+    D3DXCOLOR   mSpecularMtrl;
+    D3DXCOLOR   mSpecularLight;
+    float       mSpecularPower;
+
+    D3DXHANDLE mhTech;
+    D3DXHANDLE mhWVP;
+    D3DXHANDLE mhWorldInvTrans;
+    D3DXHANDLE mhLightVecW;
+    D3DXHANDLE mhDiffuseMtrl;
+    D3DXHANDLE mhDiffuseLight;
+    D3DXHANDLE mhAmbientMtrl;
+    D3DXHANDLE mhAmbientLight;
+    D3DXHANDLE mhSpecularMtrl;
+    D3DXHANDLE mhSpecularLight;
+    D3DXHANDLE mhSpecularPower;
+    D3DXHANDLE mhEyePos;
+    D3DXHANDLE mhWorld;
+    D3DXHANDLE mhTex;
 };
 
 #endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,21 +1,20 @@
 #ifndef ERROR_H
 #define ERROR_H
 
-#include <d3d9.h>
-#include <dinput.h>
+#include <winerror.h>
 
 void fatal(const char *file, int line, const char *message);
+void debug(const char *file, int line, const char *message);
 
-#define ASSERT_EQUAL(command, expected)                 \
+#define FATAL(message) fatal(__FILE__, __LINE__, message)
+#define DEBUG(message) debug(__FILE__, __LINE__, message)
+
+#define OK(command)                                     \
     do {                                                \
         HRESULT result = (command);                     \
-        if (result != expected) {                       \
+        if (FAILED(result)) {                           \
             fatal(__FILE__, __LINE__, #command);        \
         }                                               \
     } while (false)
-
-#define OK_DI(command) ASSERT_EQUAL(command, DI_OK)
-#define OK_3D(command) ASSERT_EQUAL(command, D3D_OK)
-#define OK_FX(command) ASSERT_EQUAL(command, S_OK)
 
 #endif

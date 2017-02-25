@@ -4,6 +4,8 @@
 #include "framework.h"
 #include "error.h"
 
+// global states
+
 static bool g_inited;
 static bool g_paused;
 
@@ -14,20 +16,20 @@ static IDirectInputDevice8 *g_keyboard;
 static IDirectInputDevice8 *g_mouse;
 
 static void input_init(HWND window) {
-    DWORD cooperative_level = DISCL_FOREGROUND | DISCL_NONEXCLUSIVE;
+    DWORD coop = DISCL_FOREGROUND | DISCL_NONEXCLUSIVE;
 
-    OK_DI(DirectInput8Create(GetModuleHandle(NULL), DIRECTINPUT_VERSION,
-                             IID_IDirectInput8, (LPVOID *)&g_input, NULL));
+    OK(DirectInput8Create(GetModuleHandle(NULL), DIRECTINPUT_VERSION,
+                          IID_IDirectInput8, (LPVOID *)&g_input, NULL));
 
-    OK_DI(g_input->CreateDevice(GUID_SysKeyboard, &g_keyboard, NULL));
-    OK_DI(g_keyboard->SetDataFormat(&c_dfDIKeyboard));
-    OK_DI(g_keyboard->SetCooperativeLevel(window, cooperative_level));
-    OK_DI(g_keyboard->Acquire());
+    OK(g_input->CreateDevice(GUID_SysKeyboard, &g_keyboard, NULL));
+    OK(g_keyboard->SetDataFormat(&c_dfDIKeyboard));
+    OK(g_keyboard->SetCooperativeLevel(window, coop));
+    OK(g_keyboard->Acquire());
 
-    OK_DI(g_input->CreateDevice(GUID_SysMouse, &g_mouse, NULL));
-    OK_DI(g_mouse->SetDataFormat(&c_dfDIMouse2));
-    OK_DI(g_mouse->SetCooperativeLevel(window, cooperative_level));
-    OK_DI(g_mouse->Acquire());
+    OK(g_input->CreateDevice(GUID_SysMouse, &g_mouse, NULL));
+    OK(g_mouse->SetDataFormat(&c_dfDIMouse2));
+    OK(g_mouse->SetCooperativeLevel(window, coop));
+    OK(g_mouse->Acquire());
 }
 
 static void input_free() {
@@ -51,7 +53,7 @@ static void direct3d_init(HWND window) {
 
     g_d3dobject = Direct3DCreate9(D3D_SDK_VERSION);
     if (g_d3dobject == NULL) {
-        fatal(__FILE__, __LINE__, "Direct3DCreate9");
+        FATAL("Direct3DCreate9");
     }
 
     direct3d_check(type);
@@ -70,9 +72,9 @@ static void direct3d_init(HWND window) {
     g_d3dpresent.Flags                      = 0;
     g_d3dpresent.FullScreen_RefreshRateInHz = D3DPRESENT_RATE_DEFAULT;
     g_d3dpresent.PresentationInterval       = D3DPRESENT_INTERVAL_IMMEDIATE;
-    OK_3D(g_d3dobject->CreateDevice(D3DADAPTER_DEFAULT, type, window,
-                                    D3DCREATE_HARDWARE_VERTEXPROCESSING,
-                                    &g_d3dpresent, &g_direct3d));
+    OK(g_d3dobject->CreateDevice(D3DADAPTER_DEFAULT, type, window,
+                                 D3DCREATE_HARDWARE_VERTEXPROCESSING,
+                                 &g_d3dpresent, &g_direct3d));
 }
 
 static void direct3d_free() {
@@ -83,47 +85,45 @@ static void direct3d_free() {
 static void direct3d_check(D3DDEVTYPE type) {
     // check for hardware vertex processing
     D3DDISPLAYMODE mode;
-    OK_3D(g_d3dobject->GetAdapterDisplayMode(D3DADAPTER_DEFAULT, &mode));
-    OK_3D(g_d3dobject->CheckDeviceType(D3DADAPTER_DEFAULT, type,
-                                       mode.Format, mode.Format,
-                                       true));
-    OK_3D(g_d3dobject->CheckDeviceType(D3DADAPTER_DEFAULT, type,
-                                       D3DFMT_X8R8G8B8, D3DFMT_X8R8G8B8,
-                                       false));
+    OK(g_d3dobject->GetAdapterDisplayMode(D3DADAPTER_DEFAULT, &mode));
+    OK(g_d3dobject->CheckDeviceType(D3DADAPTER_DEFAULT, type,
+                                    mode.Format, mode.Format, true));
+    OK(g_d3dobject->CheckDeviceType(D3DADAPTER_DEFAULT, type,
+                                    D3DFMT_X8R8G8B8, D3DFMT_X8R8G8B8, false));
     D3DCAPS9 caps;
-    OK_3D(g_d3dobject->GetDeviceCaps(D3DADAPTER_DEFAULT, type, &caps));
+    OK(g_d3dobject->GetDeviceCaps(D3DADAPTER_DEFAULT, type, &caps));
     if ((caps.DevCaps & D3DDEVCAPS_HWTRANSFORMANDLIGHT) == 0) {
-        fatal(__FILE__, __LINE__, "D3DDEVCAPS_HWTRANSFORMANDLIGHT");
+        FATAL("D3DDEVCAPS_HWTRANSFORMANDLIGHT");
     }
     // check for shader version support
     if (caps.VertexShaderVersion < D3DVS_VERSION(2, 0)) {
-        fatal(__FILE__, __LINE__, "VertexShaderVersion");
+        FATAL("VertexShaderVersion");
     }
     if (caps.PixelShaderVersion < D3DPS_VERSION(2, 0)) {
-        fatal(__FILE__, __LINE__, "PixelShaderVersion");
+        FATAL("PixelShaderVersion");
     }
 }
 
-static void direct3d_on_loss() {
+static void direct3d_on_lost() {
     int width = g_d3dpresent.BackBufferWidth;
     int height = g_d3dpresent.BackBufferHeight;
 
-    on_loss();
-    OK_3D(g_direct3d->Reset(&g_d3dpresent));
+    on_lost();
+    OK(g_direct3d->Reset(&g_d3dpresent));
     on_reset(width, height);
 }
 
-static bool direct3d_is_loss() {
+static bool direct3d_is_lost() {
     HRESULT result = g_direct3d->TestCooperativeLevel();
 
     if (result == D3DERR_DEVICELOST) {
         Sleep(20);
         return true;
     } else if (result == D3DERR_DRIVERINTERNALERROR) {
-        fatal(__FILE__, __LINE__, "D3DERR_DRIVERINTERNALERROR");
+        FATAL("D3DERR_DRIVERINTERNALERROR");
         return true;
     } else if (result == D3DERR_DEVICENOTRESET) {
-        direct3d_on_loss();
+        direct3d_on_lost();
         return false;
     } else {
         return false;
@@ -152,7 +152,7 @@ static void window_init(HWND *window, const char *title,
     wc.lpszMenuName  = NULL;
     wc.lpszClassName = wc_name;
     if (RegisterClass(&wc) == 0) {
-        fatal(__FILE__, __LINE__, "RegisterClass");
+        FATAL("RegisterClass");
     }
 
     RECT rect = {0, 0, width, height};
@@ -163,7 +163,7 @@ static void window_init(HWND *window, const char *title,
                            CW_USEDEFAULT, CW_USEDEFAULT, width, height,
                            NULL, NULL, GetModuleHandleW(NULL), NULL);
     if (*window == NULL) {
-        fatal(__FILE__, __LINE__, "CreateWindow");
+        FATAL("CreateWindow");
     }
 
     ShowWindow(*window, SW_SHOW);
@@ -188,7 +188,7 @@ static LRESULT CALLBACK window_proc(HWND hwnd, UINT uMsg,
                 GetClientRect(hwnd, &rect);
                 g_d3dpresent.BackBufferWidth  = rect.right;
                 g_d3dpresent.BackBufferHeight = rect.bottom;
-                direct3d_on_loss();
+                direct3d_on_lost();
                 return 0;
             case WM_CLOSE:
                 DestroyWindow(hwnd);
@@ -221,12 +221,12 @@ static void window_on_resize(WPARAM wParam, LPARAM lParam) {
     } else if (wParam == SIZE_MAXIMIZED) {
         g_paused = false;
         min_or_max = true;
-        direct3d_on_loss();
+        direct3d_on_lost();
     } else if (wParam == SIZE_RESTORED) {
         g_paused = false;
         if (g_d3dpresent.Windowed) {
             if (min_or_max) {
-                direct3d_on_loss();
+                direct3d_on_lost();
             } else {
                 // resizing by dragging the window edges
                 // wait until a WM_EXITSIZEMOVE message comes
@@ -284,7 +284,7 @@ static void window_fullscreen(HWND window, bool enable) {
         g_d3dpresent.BackBufferHeight = height;
         g_d3dpresent.Windowed         = true;
     }
-    direct3d_on_loss();
+    direct3d_on_lost();
 }
 
 // event loop
@@ -306,7 +306,7 @@ static int eventloop() {
         } else {
             if (g_paused) {
                 Sleep(20);
-            } else if (direct3d_is_loss() == false) {
+            } else if (direct3d_is_lost() == false) {
                 LARGE_INTEGER curr_time;
                 QueryPerformanceCounter(&curr_time);
                 float dcount = curr_time.QuadPart - prev_time.QuadPart;

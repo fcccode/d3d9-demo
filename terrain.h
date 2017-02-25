@@ -9,11 +9,9 @@ class Terrain {
 public:
     Terrain(IDirect3DDevice9 *direct3d);
     ~Terrain();
-
     void on_lost();
     void on_reset();
-    void render(IDirect3DDevice9 *direct3d, D3DXMATRIX view_proj);
-
+    void render(D3DXMATRIX view_proj);
     float get_height(float x, float z);
 
 private:
@@ -21,16 +19,18 @@ private:
                         float scale, float offset);
     void smooth_heightmap();
 
-    void build_mesh(IDirect3DDevice9 *direct3d,
-                    int rows, int cols, int drow, int dcol);
+    void build_mesh(int rows, int cols, int drow, int dcol);
+    void build_params(int rows, int cols, int drow, int dcol);
     void build_grid(std::vector<D3DXVECTOR3> &vertices,
                     std::vector<DWORD> &indices);
+    void write_vertices(std::vector<D3DXVECTOR3> &vertices, int num_verts);
+    void write_indices(std::vector<DWORD> &indices, int num_faces);
 
-    void build_effect(IDirect3DDevice9 *direct3d, const char *effect,
-                      const char *grass, const char *dirt,
-                      const char *stone, const char *blend);
+    void build_effect(const char *effect);
 
 private:
+    IDirect3DDevice9 *m_direct3d;
+
     int m_verts_x;
     int m_verts_z;
     int m_cells_x;
@@ -48,6 +48,12 @@ private:
 
     D3DXHANDLE m_fx_tech;
     D3DXHANDLE m_fx_view_proj;
+    D3DXHANDLE m_fx_dir_to_sun;
+
+    D3DXHANDLE m_fx_grass;
+    D3DXHANDLE m_fx_dirt;
+    D3DXHANDLE m_fx_stone;
+    D3DXHANDLE m_fx_blend;
 
     IDirect3DTexture9 *m_grass;
     IDirect3DTexture9 *m_dirt;

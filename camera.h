@@ -8,9 +8,8 @@
 class Camera {
 public:
     Camera(float aspect);
-    void on_reset(float aspect);
     void travel(Input *input, Terrain *terrain, float dtime);
-
+    void set_lens(float aspect);
     D3DXVECTOR3 get_pos();
     D3DXMATRIX get_view_proj();
 
@@ -24,7 +23,7 @@ private:
     float m_z_far;
 
     float m_mov_speed;
-    float m_rot_speed;
+    float m_rot_ratio;
     float m_cam_height;
 
     D3DXVECTOR3 m_pos;

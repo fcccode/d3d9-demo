@@ -10,7 +10,7 @@ void on_setup(IDirect3DDevice9 *direct3d, int width, int height,
               IDirectInputDevice8 *keyboard, IDirectInputDevice8 *mouse);
 void on_teardown();
 
-void on_loss();
+void on_lost();
 void on_reset(int width, int height);
 
 void on_render(float dtime);
