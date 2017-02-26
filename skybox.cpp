@@ -4,7 +4,7 @@
 #include "error.h"
 
 Skybox::Skybox(IDirect3DDevice9 *direct3d) {
-    int radius = 10000.0f;
+    float radius = 10000.0f;
     int slices = 30;
     int stacks = 30;
     const char *effect = "skybox.fx";

@@ -1,83 +1,58 @@
 #include <d3d9.h>
 #include <d3dx9.h>
 #include "crate.h"
+#include "effect.h"
 #include "vertex.h"
 #include "error.h"
 
 Crate::Crate(IDirect3DDevice9 *direct3d) {
-    const char *effect = "object.fx";
+    const char *effect = "light.fx";
     const char *texture = "crate.jpg";
 
-    mLightVecW     = D3DXVECTOR3(0.0, 0.0f, -1.0f);
-    mDiffuseMtrl   = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-    mDiffuseLight  = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-    mAmbientMtrl   = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-    mAmbientLight  = D3DXCOLOR(0.6f, 0.6f, 0.6f, 1.0f);
-    mSpecularMtrl  = D3DXCOLOR(0.8f, 0.8f, 0.8f, 1.0f);
-    mSpecularLight = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-    mSpecularPower = 8.0f;
-
     m_direct3d = direct3d;
-
-    D3DXMatrixIdentity(&m_world);
-    D3DXMatrixTranslation(&m_world, 0, 350, 0);
-
     build_cube();
-    build_effect(effect);
-
+    m_effect = new Effect(m_direct3d, effect);
     OK(D3DXCreateTextureFromFile(m_direct3d, texture, &m_texture));
+    m_material.ambient  = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+    m_material.diffuse  = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+    m_material.specular = D3DXCOLOR(0.8f, 0.8f, 0.8f, 1.0f);
+    m_material.specular_power = 8.0f;
 }
 
 Crate::~Crate() {
-    m_effect->Release();
+    delete m_effect;
     m_texture->Release();
-
     m_vertices->Release();
     m_indices->Release();
 }
 
 void Crate::on_lost() {
-    OK(m_effect->OnLostDevice());
+    OK(m_effect->get_handle()->OnLostDevice());
 }
 
 void Crate::on_reset() {
-    OK(m_effect->OnResetDevice());
+    OK(m_effect->get_handle()->OnResetDevice());
 }
 
 void Crate::render(D3DXVECTOR3 cam_pos, D3DXMATRIX view_proj) {
-    OK(m_effect->SetTechnique(mhTech));
-    OK(m_effect->SetMatrix(mhWVP, &(m_world * view_proj)));
+    D3DXMATRIX world;
+    D3DXMatrixTranslation(&world, 0, 350, 0);
 
-    D3DXMATRIX worldInvTrans;
-    D3DXMatrixInverse(&worldInvTrans, NULL, &m_world);
-    D3DXMatrixTranspose(&worldInvTrans, &worldInvTrans);
-
-    OK(m_effect->SetMatrix(mhWorldInvTrans, &worldInvTrans));
-    OK(m_effect->SetValue(mhLightVecW, &mLightVecW, sizeof(D3DXVECTOR3)));
-    OK(m_effect->SetValue(mhDiffuseMtrl, &mDiffuseMtrl, sizeof(D3DXCOLOR)));
-    OK(m_effect->SetValue(mhDiffuseLight, &mDiffuseLight, sizeof(D3DXCOLOR)));
-    OK(m_effect->SetValue(mhAmbientMtrl, &mAmbientMtrl, sizeof(D3DXCOLOR)));
-    OK(m_effect->SetValue(mhAmbientLight, &mAmbientLight, sizeof(D3DXCOLOR)));
-    OK(m_effect->SetValue(mhSpecularLight, &mSpecularLight, sizeof(D3DXCOLOR)));
-    OK(m_effect->SetValue(mhSpecularMtrl, &mSpecularMtrl, sizeof(D3DXCOLOR)));
-    OK(m_effect->SetFloat(mhSpecularPower, mSpecularPower));
-
-    OK(m_effect->SetValue(mhEyePos, &cam_pos, sizeof(D3DXVECTOR3)));
-    OK(m_effect->SetMatrix(mhWorld, &m_world));
-    OK(m_effect->SetTexture(mhTex, m_texture));
+    m_effect->prepare(cam_pos, world, view_proj, m_material, m_texture);
+    ID3DXEffect *effect = m_effect->get_handle();
 
     OK(m_direct3d->SetVertexDeclaration(Vertex::decl));
     OK(m_direct3d->SetStreamSource(0, m_vertices, 0, sizeof(Vertex)));
     OK(m_direct3d->SetIndices(m_indices));
 
     UINT passes;
-    OK(m_effect->Begin(&passes, 0));
-    OK(m_effect->BeginPass(0));
+    OK(effect->Begin(&passes, 0));
+    OK(effect->BeginPass(0));
 
     OK(m_direct3d->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, 0, 0, 24, 0, 12));
 
-    OK(m_effect->EndPass());
-    OK(m_effect->End());
+    OK(effect->EndPass());
+    OK(effect->End());
 }
 
 void Crate::build_cube() {
@@ -149,28 +124,4 @@ void Crate::write_indices() {
     i[30] = 20; i[31] = 21; i[32] = 22;
     i[33] = 20; i[34] = 22; i[35] = 23;
     OK(m_indices->Unlock());
-}
-
-void Crate::build_effect(const char *effect) {
-    ID3DXBuffer *errors = NULL;
-    OK(D3DXCreateEffectFromFile(m_direct3d, effect, NULL, NULL,
-                                D3DXSHADER_DEBUG, NULL, &m_effect, &errors));
-    if(errors != NULL) {
-        FATAL((const char *)errors->GetBufferPointer());
-    }
-
-    mhTech          = m_effect->GetTechniqueByName("DirLightTexTech");
-    mhWVP           = m_effect->GetParameterByName(NULL, "gWVP");
-    mhWorldInvTrans = m_effect->GetParameterByName(NULL, "gWorldInvTrans");
-    mhLightVecW     = m_effect->GetParameterByName(NULL, "gLightVecW");
-    mhDiffuseMtrl   = m_effect->GetParameterByName(NULL, "gDiffuseMtrl");
-    mhDiffuseLight  = m_effect->GetParameterByName(NULL, "gDiffuseLight");
-    mhAmbientMtrl   = m_effect->GetParameterByName(NULL, "gAmbientMtrl");
-    mhAmbientLight  = m_effect->GetParameterByName(NULL, "gAmbientLight");
-    mhSpecularMtrl  = m_effect->GetParameterByName(NULL, "gSpecularMtrl");
-    mhSpecularLight = m_effect->GetParameterByName(NULL, "gSpecularLight");
-    mhSpecularPower = m_effect->GetParameterByName(NULL, "gSpecularPower");
-    mhEyePos        = m_effect->GetParameterByName(NULL, "gEyePosW");
-    mhWorld         = m_effect->GetParameterByName(NULL, "gWorld");
-    mhTex           = m_effect->GetParameterByName(NULL, "gTex");
 }

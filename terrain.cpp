@@ -3,6 +3,7 @@
 #include <d3d9.h>
 #include <d3dx9.h>
 #include "terrain.h"
+#include "light.h"
 #include "vertex.h"
 #include "error.h"
 
@@ -56,7 +57,7 @@ void Terrain::on_reset() {
 void Terrain::render(D3DXMATRIX view_proj) {
     OK(m_effect->SetTechnique(m_fx_tech));
     OK(m_effect->SetMatrix(m_fx_view_proj, &view_proj));
-    OK(m_effect->SetValue(m_fx_dir_to_sun, &D3DXVECTOR3(0.0f, 1.0f, 0.0f),
+    OK(m_effect->SetValue(m_fx_dir_to_sun, Light::direction,
                           sizeof(D3DXVECTOR3)));
 
     OK(m_effect->SetTexture(m_fx_grass, m_grass));
