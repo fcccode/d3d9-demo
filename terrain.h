@@ -12,6 +12,7 @@ public:
     void on_lost();
     void on_reset();
     void render(D3DXMATRIX view_proj);
+    bool is_bounded(float x, float z);
     float get_height(float x, float z);
 
 private:
@@ -45,28 +46,12 @@ private:
     std::vector<std::vector<float>> m_heightmap;
     ID3DXMesh *m_mesh;
     ID3DXEffect *m_effect;
+    IDirect3DTexture9 *m_ground;
 
     D3DXHANDLE m_fx_tech;
     D3DXHANDLE m_fx_view_proj;
-    D3DXHANDLE m_fx_dir_to_sun;
-
-    D3DXHANDLE m_fx_grass;
-    D3DXHANDLE m_fx_dirt;
-    D3DXHANDLE m_fx_stone;
-    D3DXHANDLE m_fx_blend;
-
-    IDirect3DTexture9 *m_grass;
-    IDirect3DTexture9 *m_dirt;
-    IDirect3DTexture9 *m_stone;
-    IDirect3DTexture9 *m_blend;
+    D3DXHANDLE m_fx_light_dir;
+    D3DXHANDLE m_fx_texture;
 };
 
 #endif
-
-
-
-
-
-
-
-

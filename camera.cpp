@@ -3,7 +3,7 @@
 #include "input.h"
 #include "terrain.h"
 
-Camera::Camera(float aspect) {
+Camera::Camera(float aspect, D3DXVECTOR3 pos) {
     m_y_fov  = D3DX_PI * 0.25f;
     m_z_near = 0.01f;
     m_z_far  = 5000.0f;
@@ -12,7 +12,8 @@ Camera::Camera(float aspect) {
     m_rot_ratio  = 150.0f;
     m_cam_height = 2.5f;
 
-    m_pos   = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
+    m_pos   = pos;
+
     m_right = D3DXVECTOR3(1.0f, 0.0f, 0.0f);
     m_up    = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
     m_look  = D3DXVECTOR3(0.0f, 0.0f, 1.0f);
@@ -24,9 +25,11 @@ Camera::Camera(float aspect) {
     set_lens(aspect);
 }
 
-void Camera::travel(Input *input, Terrain *terrain, float dtime) {
-    input->poll();
+void Camera::travel(Input *input, Terrain *terrain,
+                    float dtime, float y_offset) {
+    D3DXVECTOR3 old_pos = m_pos;
 
+    input->poll();
     D3DXVECTOR3 direction(0.0f, 0.0f, 0.0f);
     if (input->key_down(KEY_W)) {
         direction += m_look;
@@ -44,12 +47,16 @@ void Camera::travel(Input *input, Terrain *terrain, float dtime) {
     D3DXVec3Normalize(&direction, &direction);
     D3DXVECTOR3 approx_pos = m_pos + dtime * m_mov_speed * direction;
     float approx_height = terrain->get_height(approx_pos.x, approx_pos.z);
-    approx_pos.y = approx_height + m_cam_height;
+    approx_pos.y = approx_height + m_cam_height + y_offset;
 
     D3DXVECTOR3 tangent = approx_pos - m_pos;
     D3DXVec3Normalize(&tangent, &tangent);
     m_pos += dtime * m_mov_speed * tangent;
-    m_pos.y = terrain->get_height(m_pos.x, m_pos.z) + m_cam_height;
+    m_pos.y = terrain->get_height(m_pos.x, m_pos.z) + m_cam_height + y_offset;
+
+    if (terrain->is_bounded(m_pos.x, m_pos.z) == false) {
+        m_pos = old_pos;
+    }
 
     float r_angle = input->mouse_dy() / m_rot_ratio;
     float y_angle = input->mouse_dx() / m_rot_ratio;
@@ -73,12 +80,16 @@ void Camera::set_lens(float aspect) {
     m_view_proj = m_view * m_proj;
 }
 
+D3DXMATRIX Camera::get_view_proj() {
+    return m_view_proj;
+}
+
 D3DXVECTOR3 Camera::get_pos() {
     return m_pos;
 }
 
-D3DXMATRIX Camera::get_view_proj() {
-    return m_view_proj;
+void Camera::set_pos(D3DXVECTOR3 pos) {
+    m_pos = pos;
 }
 
 void Camera::build_view() {

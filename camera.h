@@ -7,11 +7,12 @@
 
 class Camera {
 public:
-    Camera(float aspect);
-    void travel(Input *input, Terrain *terrain, float dtime);
+    Camera(float aspect, D3DXVECTOR3 pos);
+    void travel(Input *input, Terrain *terrain, float dtime, float y_offset);
     void set_lens(float aspect);
-    D3DXVECTOR3 get_pos();
     D3DXMATRIX get_view_proj();
+    D3DXVECTOR3 get_pos();
+    void set_pos(D3DXVECTOR3 pos);
 
 private:
     void build_view();
@@ -27,6 +28,7 @@ private:
     float m_cam_height;
 
     D3DXVECTOR3 m_pos;
+
     D3DXVECTOR3 m_right;
     D3DXVECTOR3 m_up;
     D3DXVECTOR3 m_look;

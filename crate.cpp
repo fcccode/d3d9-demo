@@ -1,22 +1,38 @@
+#include <math.h>
+#include <stdio.h>
 #include <d3d9.h>
 #include <d3dx9.h>
 #include "crate.h"
 #include "effect.h"
+#include "terrain.h"
 #include "vertex.h"
 #include "error.h"
 
-Crate::Crate(IDirect3DDevice9 *direct3d) {
+Crate::Crate(IDirect3DDevice9 *direct3d, D3DXVECTOR3 center) {
     const char *effect = "light.fx";
     const char *texture = "crate.jpg";
 
     m_direct3d = direct3d;
+
+    m_radius = 70.0f;
+    m_period = 10.0f;
+    m_elapsed = 0.0f;
+    m_scale = 3.0f;
+
+    m_center = center;
+
+    D3DXMatrixIdentity(&m_world);
+
     build_cube();
+
     m_effect = new Effect(m_direct3d, effect);
-    OK(D3DXCreateTextureFromFile(m_direct3d, texture, &m_texture));
+
     m_material.ambient  = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
     m_material.diffuse  = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-    m_material.specular = D3DXCOLOR(0.8f, 0.8f, 0.8f, 1.0f);
+    m_material.specular = D3DXCOLOR(0.0f, 0.0f, 0.0f, 1.0f);
     m_material.specular_power = 8.0f;
+
+    OK(D3DXCreateTextureFromFile(m_direct3d, texture, &m_texture));
 }
 
 Crate::~Crate() {
@@ -35,17 +51,15 @@ void Crate::on_reset() {
 }
 
 void Crate::render(D3DXVECTOR3 cam_pos, D3DXMATRIX view_proj) {
-    D3DXMATRIX world;
-    D3DXMatrixTranslation(&world, 0, 350, 0);
-
-    m_effect->prepare(cam_pos, world, view_proj, m_material, m_texture);
-    ID3DXEffect *effect = m_effect->get_handle();
+    m_effect->set_technique();
+    m_effect->set_states(cam_pos, m_world, view_proj, m_material, m_texture);
 
     OK(m_direct3d->SetVertexDeclaration(Vertex::decl));
     OK(m_direct3d->SetStreamSource(0, m_vertices, 0, sizeof(Vertex)));
     OK(m_direct3d->SetIndices(m_indices));
 
     UINT passes;
+    ID3DXEffect *effect = m_effect->get_handle();
     OK(effect->Begin(&passes, 0));
     OK(effect->BeginPass(0));
 
@@ -53,6 +67,57 @@ void Crate::render(D3DXVECTOR3 cam_pos, D3DXMATRIX view_proj) {
 
     OK(effect->EndPass());
     OK(effect->End());
+}
+
+D3DXVECTOR3 Crate::rotate(Terrain *terrain, float dtime) {
+    static bool is_initial = true;
+
+    D3DXMATRIX operation;
+    D3DXMatrixIdentity(&m_world);
+
+    D3DXMatrixScaling(&operation, m_scale, m_scale, m_scale);
+    m_world *= operation;
+
+    D3DXMatrixTranslation(&operation, m_radius, 0.0f, 0.0f);
+    m_world *= operation;
+
+    m_elapsed += dtime;
+    if (m_elapsed > m_period) {
+        m_elapsed -= m_period;
+    }
+    float radian = m_elapsed / m_period * 2.0f * D3DX_PI;
+    D3DXMatrixRotationY(&operation, radian);
+    m_world *= operation;
+
+    D3DXMatrixTranslation(&operation, m_center.x, m_center.y, m_center.z);
+    m_world *= operation;
+
+    float x = m_world(3, 0);
+    float z = m_world(3, 2);
+    float y = terrain->get_height(x, z) + m_scale;
+    m_world(3, 1) = y;
+
+    m_prev_pos = m_curr_pos;
+    m_curr_pos = D3DXVECTOR3(x, y, z);
+    if (is_initial) {
+        is_initial = false;
+        m_prev_pos = m_curr_pos;
+    }
+
+    return m_curr_pos - m_prev_pos;
+}
+
+float Crate::get_height() {
+    return 2.0f * m_scale;
+}
+
+bool Crate::is_near(D3DXVECTOR3 pos) {
+    D3DXVECTOR3 diff = m_curr_pos - pos;
+    if (fabs(diff.x) <= m_scale * 2.0f && fabs(diff.z) <= m_scale * 2.0f) {
+        return true;
+    } else {
+        return false;
+    }
 }
 
 void Crate::build_cube() {

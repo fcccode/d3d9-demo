@@ -1,49 +1,42 @@
-//=============================================================================
-// sky.fx by Frank Luna (C) 2004 All Rights Reserved.
-//=============================================================================
+uniform extern float4x4 g_wvp;
+uniform extern texture  g_envmap;
 
-uniform extern float4x4 gWVP;
-uniform extern texture  gEnvMap;
-
-sampler EnvMapS = sampler_state
-{
-    Texture   = <gEnvMap>;
-    MinFilter = LINEAR; 
+sampler EnvMapSampler = sampler_state {
+    Texture   = <g_envmap>;
+    MinFilter = LINEAR;
     MagFilter = LINEAR;
     MipFilter = LINEAR;
     AddressU  = WRAP;
     AddressV  = WRAP;
 };
 
+struct OutputVS {
+    float4 pos : POSITION0;
+    float3 tex : TEXCOORD0;
+};
 
-void SkyVS(float3 posL : POSITION0, 
-           out float4 oPosH : POSITION0, 
-           out float3 oEnvTex : TEXCOORD0)
-{
-	// Set z = w so that z/w = 1 (i.e., skydome always on far plane).
-    oPosH = mul(float4(posL, 1.0f), gWVP).xyww; 
-    
-    // Use skymesh vertex position, in local space, as index into cubemap. 
-    oEnvTex = posL;
+OutputVS SkyVS(float3 pos : POSITION0) {
+    OutputVS output;
+
+    output.pos = mul(float4(pos, 1.0f), g_wvp).xyww;
+    output.tex = pos;
+
+    return output;
 }
 
-float4 SkyPS(float3 envTex : TEXCOORD0) : COLOR
-{
-    return texCUBE(EnvMapS, envTex);
+float4 SkyPS(float3 tex : TEXCOORD0) : COLOR {
+    return texCUBE(EnvMapSampler, tex);
 }
 
-technique SkyTech
-{
-    pass P0
-    {
-        vertexShader = compile vs_2_0 SkyVS();
-        pixelShader  = compile ps_2_0 SkyPS();
-		CullMode = None;
-		ZFunc = Always; // Always write sky to depth buffer
-		StencilEnable = true;
-		StencilFunc   = Always;
-		StencilPass   = Replace;
-		StencilRef    = 0; // clear to zero
+technique SkyTech {
+    pass Pass0 {
+        VertexShader  = compile vs_2_0 SkyVS();
+        PixelShader   = compile ps_2_0 SkyPS();
+        CullMode      = None;
+        ZFunc         = Always;
+        StencilEnable = true;
+        StencilFunc   = Always;
+        StencilPass   = Replace;
+        StencilRef    = 0;
     }
 }
-

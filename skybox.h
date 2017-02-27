@@ -21,8 +21,8 @@ private:
     IDirect3DCubeTexture9 *m_envmap;
     ID3DXEffect *m_effect;
     D3DXHANDLE m_fx_tech;
-    D3DXHANDLE m_fx_envmap;
     D3DXHANDLE m_fx_wvp;
+    D3DXHANDLE m_fx_envmap;
 };
 
 #endif

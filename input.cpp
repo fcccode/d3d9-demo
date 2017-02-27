@@ -14,7 +14,8 @@ Input::Input(IDirectInputDevice8 *keyboard, IDirectInputDevice8 *mouse) {
 void Input::poll() {
     HRESULT result;
 
-    result = m_keyboard->GetDeviceState(sizeof(m_keyboard_state), &m_keyboard_state);
+    result = m_keyboard->GetDeviceState(sizeof(m_keyboard_state),
+                                        &m_keyboard_state);
     if (FAILED(result)) {
         memset(&m_keyboard_state, 0, sizeof(m_keyboard_state));
         m_keyboard->Acquire();

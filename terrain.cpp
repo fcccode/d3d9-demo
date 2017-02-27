@@ -12,10 +12,7 @@ using std::vector;
 Terrain::Terrain(IDirect3DDevice9 *direct3d) {
     const char *himap  = "heightmap.raw";
     const char *effect = "terrain.fx";
-    const char *grass  = "grass.dds";
-    const char *dirt   = "dirt.dds";
-    const char *stone  = "stone.dds";
-    const char *blend  = "blend.dds";
+    const char *ground = "ground.jpg";
 
     int rows = 257;
     int cols = 257;
@@ -29,21 +26,13 @@ Terrain::Terrain(IDirect3DDevice9 *direct3d) {
     load_heightmap(himap, rows, cols, scale, offset);
     build_mesh(rows, cols, drow, dcol);
     build_effect(effect);
-
-    OK(D3DXCreateTextureFromFile(m_direct3d, grass, &m_grass));
-    OK(D3DXCreateTextureFromFile(m_direct3d, dirt,  &m_dirt));
-    OK(D3DXCreateTextureFromFile(m_direct3d, stone, &m_stone));
-    OK(D3DXCreateTextureFromFile(m_direct3d, blend, &m_blend));
+    OK(D3DXCreateTextureFromFile(m_direct3d, ground, &m_ground));
 }
 
 Terrain::~Terrain() {
     m_mesh->Release();
     m_effect->Release();
-
-    m_grass->Release();
-    m_dirt->Release();
-    m_stone->Release();
-    m_blend->Release();
+    m_ground->Release();
 }
 
 void Terrain::on_lost() {
@@ -57,13 +46,9 @@ void Terrain::on_reset() {
 void Terrain::render(D3DXMATRIX view_proj) {
     OK(m_effect->SetTechnique(m_fx_tech));
     OK(m_effect->SetMatrix(m_fx_view_proj, &view_proj));
-    OK(m_effect->SetValue(m_fx_dir_to_sun, Light::direction,
+    OK(m_effect->SetValue(m_fx_light_dir, Light::direction,
                           sizeof(D3DXVECTOR3)));
-
-    OK(m_effect->SetTexture(m_fx_grass, m_grass));
-    OK(m_effect->SetTexture(m_fx_dirt,  m_dirt));
-    OK(m_effect->SetTexture(m_fx_stone, m_stone));
-    OK(m_effect->SetTexture(m_fx_blend, m_blend));
+    OK(m_effect->SetTexture(m_fx_texture, m_ground));
 
     UINT passes;
     OK(m_effect->Begin(&passes, 0));
@@ -73,6 +58,14 @@ void Terrain::render(D3DXMATRIX view_proj) {
 
     OK(m_effect->EndPass());
     OK(m_effect->End());
+}
+
+bool Terrain::is_bounded(float x, float z) {
+    if (fabs(x) < (m_width * 0.45f) && fabs(z) < (m_depth * 0.45f)) {
+        return true;
+    } else {
+        return false;
+    }
 }
 
 float Terrain::get_height(float x, float z) {
@@ -269,11 +262,7 @@ void Terrain::build_effect(const char *effect) {
     }
 
     m_fx_tech       = m_effect->GetTechniqueByName("TerrainTech");
-    m_fx_view_proj  = m_effect->GetParameterByName(NULL, "gViewProj");
-    m_fx_dir_to_sun = m_effect->GetParameterByName(NULL, "gDirToSunW");
-
-    m_fx_grass = m_effect->GetParameterByName(NULL, "gTex0");
-    m_fx_dirt  = m_effect->GetParameterByName(NULL, "gTex1");
-    m_fx_stone = m_effect->GetParameterByName(NULL, "gTex2");
-    m_fx_blend = m_effect->GetParameterByName(NULL, "gBlendMap");
+    m_fx_view_proj  = m_effect->GetParameterByName(NULL, "g_view_proj");
+    m_fx_light_dir = m_effect->GetParameterByName(NULL, "g_light_dir");
+    m_fx_texture = m_effect->GetParameterByName(NULL, "g_texture");
 }

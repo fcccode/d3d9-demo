@@ -31,13 +31,13 @@ void Skybox::on_reset() {
 }
 
 void Skybox::render(D3DXVECTOR3 cam_pos, D3DXMATRIX view_proj) {
-    OK(m_effect->SetTechnique(m_fx_tech));
-    OK(m_effect->SetTexture(m_fx_envmap, m_envmap));
-
     D3DXMATRIX world;
     D3DXMatrixTranslation(&world, cam_pos.x, cam_pos.y, cam_pos.z);
     D3DXMATRIX wvp = world * view_proj;
+
+    OK(m_effect->SetTechnique(m_fx_tech));
     OK(m_effect->SetMatrix(m_fx_wvp, &wvp));
+    OK(m_effect->SetTexture(m_fx_envmap, m_envmap));
 
     UINT passes = 0;
     OK(m_effect->Begin(&passes, 0));
@@ -58,6 +58,6 @@ void Skybox::build_effect(const char *effect) {
     }
 
     m_fx_tech   = m_effect->GetTechniqueByName("SkyTech");
-    m_fx_envmap = m_effect->GetParameterByName(NULL, "gEnvMap");
-    m_fx_wvp    = m_effect->GetParameterByName(NULL, "gWVP");
+    m_fx_wvp    = m_effect->GetParameterByName(NULL, "g_wvp");
+    m_fx_envmap = m_effect->GetParameterByName(NULL, "g_envmap");
 }
