@@ -7,8 +7,8 @@ Skybox::Skybox(IDirect3DDevice9 *direct3d) {
     float radius = 10000.0f;
     int slices = 30;
     int stacks = 30;
-    const char *effect = "skybox.fx";
-    const char *envmap = "envmap.dds";
+    const char *effect = "shaders/skybox.fx";
+    const char *envmap = "resources/envmap.dds";
 
     m_direct3d = direct3d;
     OK(D3DXCreateSphere(m_direct3d, radius, slices, stacks, &m_sphere, NULL));

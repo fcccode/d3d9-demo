@@ -10,9 +10,9 @@
 using std::vector;
 
 Terrain::Terrain(IDirect3DDevice9 *direct3d) {
-    const char *himap  = "heightmap.raw";
-    const char *effect = "terrain.fx";
-    const char *ground = "ground.jpg";
+    const char *himap  = "resources/heightmap.raw";
+    const char *ground = "resources/ground.jpg";
+    const char *effect = "shaders/terrain.fx";
 
     int rows = 257;
     int cols = 257;

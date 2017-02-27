@@ -9,8 +9,8 @@
 #include "error.h"
 
 Crate::Crate(IDirect3DDevice9 *direct3d, D3DXVECTOR3 center) {
-    const char *effect = "light.fx";
-    const char *texture = "crate.jpg";
+    const char *texture = "resources/crate.jpg";
+    const char *effect  = "shaders/light.fx";
 
     m_direct3d = direct3d;
 

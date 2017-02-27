@@ -10,9 +10,9 @@ Snowman::Snowman(IDirect3DDevice9 *direct3d, D3DXVECTOR3 pos) {
     float radius = 1.0f;
     int slices = 30;
     int stacks = 30;
-    const char *body_tex = "body.jpg";
-    const char *head_tex = "head.jpg";
-    const char *effect   = "light.fx";
+    const char *body_tex = "resources/body.jpg";
+    const char *head_tex = "resources/head.jpg";
+    const char *effect   = "shaders/light.fx";
 
     m_direct3d = direct3d;
     m_pos = pos;
