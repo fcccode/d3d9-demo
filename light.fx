@@ -1,106 +1,75 @@
-//=============================================================================
-// dirLightTex.fx by Frank Luna (C) 2004 All Rights Reserved.
-//
-// Uses a directional light plus texturing.
-//=============================================================================
+uniform extern float3   g_eye_pos;
+uniform extern float4x4 g_world;
+uniform extern float4x4 g_world_it;
+uniform extern float4x4 g_wvp;
 
-uniform extern float3 gEyePosW;
-uniform extern float4x4 gWorld;
-uniform extern float4x4 gWorldInvTrans;
-uniform extern float4x4 gWVP;
+uniform extern float4 g_ambient_light;
+uniform extern float4 g_diffuse_light;
+uniform extern float4 g_specular_light;
+uniform extern float3 g_light_direction;
 
-uniform extern float4 gAmbientMtrl;
-uniform extern float4 gDiffuseMtrl;
-uniform extern float4 gSpecularMtrl;
-uniform extern float  gSpecularPower;
+uniform extern float4 g_ambient_mtrl;
+uniform extern float4 g_diffuse_mtrl;
+uniform extern float4 g_specular_mtrl;
+uniform extern float  g_specular_power;
 
-uniform extern float4 gAmbientLight;
-uniform extern float4 gDiffuseLight;
-uniform extern float4 gSpecularLight;
-uniform extern float3 gLightVecW;
+uniform extern texture g_texture;
 
-uniform extern texture gTex;
-
-sampler TexS = sampler_state
-{
-	Texture = <gTex>;
-	MinFilter = Anisotropic;
-	MagFilter = LINEAR;
-	MipFilter = LINEAR;
-	MaxAnisotropy = 8;
-	AddressU  = WRAP;
+sampler TexSampler = sampler_state {
+    Texture   = <g_texture>;
+    MinFilter = Anisotropic;
+    MagFilter = LINEAR;
+    MipFilter = LINEAR;
+    MaxAnisotropy = 8;
+    AddressU  = WRAP;
     AddressV  = WRAP;
 };
 
-struct OutputVS
-{
-    float4 posH    : POSITION0;
-    float4 diffuse : COLOR0;
-    float4 spec    : COLOR1;
-    float2 tex0    : TEXCOORD0;
+struct OutputVS {
+    float4 pos      : POSITION0;
+    float4 diffuse  : COLOR0;
+    float4 specular : COLOR1;
+    float2 tex      : TEXCOORD0;
 };
 
-OutputVS DirLightTexVS(float3 posL : POSITION0, float3 normalL : NORMAL0, float2 tex0: TEXCOORD0)
-{
-    // Zero out our output.
-	OutputVS outVS = (OutputVS)0;
+OutputVS LightVS(float3 pos : POSITION0,
+                 float3 normal : NORMAL0,
+                 float2 tex: TEXCOORD0) {
+    OutputVS output;
+    output.pos = mul(float4(pos, 1.0f), g_wvp);
+    output.tex = tex;
 
-	// Transform normal to world space.
-	float3 normalW = mul(float4(normalL, 0.0f), gWorldInvTrans).xyz;
-	normalW = normalize(normalW);
+    float3 normal_world = mul(float4(normal, 0.0f), g_world_it).xyz;
+    normal_world = normalize(normal_world);
+    float3 pos_world  = mul(float4(pos, 1.0f), g_world).xyz;
 
-	// Transform vertex position to world space.
-	float3 posW  = mul(float4(posL, 1.0f), gWorld).xyz;
+    float3 to_eye = normalize(g_eye_pos - pos_world);
+    float3 reflection = reflect(-g_light_direction, normal_world);
 
-	//=======================================================
-	// Compute the color: Equation 10.3.
+    float t  = pow(max(dot(reflection, to_eye), 0.0f), g_specular_power);
+    float s = max(dot(g_light_direction, normal_world), 0.0f);
 
-	// Compute the vector from the vertex to the eye position.
-	float3 toEye = normalize(gEyePosW - posW);
+    float3 specular = t * (g_specular_mtrl * g_specular_light).rgb;
+    float3 diffuse  = s * (g_diffuse_mtrl * g_diffuse_light).rgb;
+    float3 ambient  = g_ambient_mtrl * g_ambient_light;
 
-	// Compute the reflection vector.
-	float3 r = reflect(-gLightVecW, normalW);
+    output.diffuse.rgb = ambient + diffuse;
+    output.diffuse.a   = g_diffuse_mtrl.a;
+    output.specular = float4(specular, 0.0f);
 
-	// Determine how much (if any) specular light makes it into the eye.
-	float t  = pow(max(dot(r, toEye), 0.0f), gSpecularPower);
-
-	// Determine the diffuse light intensity that strikes the vertex.
-	float s = max(dot(gLightVecW, normalW), 0.0f);
-
-	// Compute the ambient, diffuse and specular terms separatly.
-	float3 spec = t*(gSpecularMtrl*gSpecularLight).rgb;
-	float3 diffuse = s*(gDiffuseMtrl*gDiffuseLight).rgb;
-	float3 ambient = gAmbientMtrl*gAmbientLight;
-
-	// Sum all the terms together and copy over the diffuse alpha.
-	outVS.diffuse.rgb = ambient + diffuse;
-	outVS.diffuse.a   = gDiffuseMtrl.a;
-	outVS.spec = float4(spec, 0.0f);
-	//=======================================================
-
-	// Transform to homogeneous clip space.
-	outVS.posH = mul(float4(posL, 1.0f), gWVP);
-
-	// Pass on texture coordinates to be interpolated in rasterization.
-	outVS.tex0 = tex0;
-
-	// Done--return the output.
-    return outVS;
+    return output;
 }
 
-float4 DirLightTexPS(float4 c : COLOR0, float4 spec : COLOR1, float2 tex0 : TEXCOORD0) : COLOR
-{
-	float3 texColor = tex2D(TexS, tex0).rgb;
-	float3 diffuse = c.rgb * texColor;
-    return float4(diffuse + spec.rgb, c.a);
+float4 LightPS(float4 diffuse  : COLOR0,
+               float4 specular : COLOR1,
+               float2 tex      : TEXCOORD0) : COLOR {
+    float3 tex_color = tex2D(TexSampler, tex).rgb;
+    return float4(diffuse.rgb * tex_color + specular.rgb, diffuse.a);
 }
 
-technique DirLightTexTech
-{
-    pass P0
-    {
-        // Specify the vertex and pixel shader associated with this pass.
-        vertexShader = compile vs_2_0 DirLightTexVS();
-        pixelShader  = compile ps_2_0 DirLightTexPS();
+technique LightTech {
+    pass Pass0 {
+        VertexShader = compile vs_2_0 LightVS();
+        PixelShader  = compile ps_2_0 LightPS();
     }
 }

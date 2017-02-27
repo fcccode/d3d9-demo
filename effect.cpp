@@ -12,24 +12,24 @@ Effect::Effect(IDirect3DDevice9 *direct3d, const char *effect) {
         FATAL((const char *)errors->GetBufferPointer());
     }
 
-    m_fx_tech            = m_effect->GetTechniqueByName("DirLightTexTech");
+    m_fx_tech            = m_effect->GetTechniqueByName("LightTech");
 
-    m_fx_eye_pos         = m_effect->GetParameterByName(NULL, "gEyePosW");
-    m_fx_world           = m_effect->GetParameterByName(NULL, "gWorld");
-    m_fx_world_it        = m_effect->GetParameterByName(NULL, "gWorldInvTrans");
-    m_fx_wvp             = m_effect->GetParameterByName(NULL, "gWVP");
+    m_fx_eye_pos         = m_effect->GetParameterByName(NULL, "g_eye_pos");
+    m_fx_world           = m_effect->GetParameterByName(NULL, "g_world");
+    m_fx_world_it        = m_effect->GetParameterByName(NULL, "g_world_it");
+    m_fx_wvp             = m_effect->GetParameterByName(NULL, "g_wvp");
 
-    m_fx_ambient_light   = m_effect->GetParameterByName(NULL, "gAmbientLight");
-    m_fx_diffuse_light   = m_effect->GetParameterByName(NULL, "gDiffuseLight");
-    m_fx_specular_light  = m_effect->GetParameterByName(NULL, "gSpecularLight");
-    m_fx_light_direction = m_effect->GetParameterByName(NULL, "gLightVecW");
+    m_fx_ambient_light   = m_effect->GetParameterByName(NULL, "g_ambient_light");
+    m_fx_diffuse_light   = m_effect->GetParameterByName(NULL, "g_diffuse_light");
+    m_fx_specular_light  = m_effect->GetParameterByName(NULL, "g_specular_light");
+    m_fx_light_direction = m_effect->GetParameterByName(NULL, "g_light_direction");
 
-    m_fx_ambient_mtrl    = m_effect->GetParameterByName(NULL, "gAmbientMtrl");
-    m_fx_diffuse_mtrl    = m_effect->GetParameterByName(NULL, "gDiffuseMtrl");
-    m_fx_specular_mtrl   = m_effect->GetParameterByName(NULL, "gSpecularMtrl");
-    m_fx_specular_power  = m_effect->GetParameterByName(NULL, "gSpecularPower");
+    m_fx_ambient_mtrl    = m_effect->GetParameterByName(NULL, "g_ambient_mtrl");
+    m_fx_diffuse_mtrl    = m_effect->GetParameterByName(NULL, "g_diffuse_mtrl");
+    m_fx_specular_mtrl   = m_effect->GetParameterByName(NULL, "g_specular_mtrl");
+    m_fx_specular_power  = m_effect->GetParameterByName(NULL, "g_specular_power");
 
-    m_fx_texture         = m_effect->GetParameterByName(NULL, "gTex");
+    m_fx_texture         = m_effect->GetParameterByName(NULL, "g_texture");
 }
 
 Effect::~Effect() {
