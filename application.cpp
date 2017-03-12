@@ -14,10 +14,10 @@
 
 static IDirect3DDevice9 *g_direct3d;
 
-static Input *g_input;
-static Camera *g_camera;
-static Crate *g_crate;
-static Skybox *g_skybox;
+static Input   *g_input;
+static Camera  *g_camera;
+static Crate   *g_crate;
+static Skybox  *g_skybox;
 static Snowman *g_snowman0;
 static Snowman *g_snowman1;
 static Terrain *g_terrain;

@@ -31,7 +31,7 @@ OutputVS TerrainVS(float3 pos    : POSITION0,
     return output;
 }
 
-float4 TerrainPS(float2 tex  : TEXCOORD0, float shade : TEXCOORD1) : COLOR {
+float4 TerrainPS(float2 tex : TEXCOORD0, float shade : TEXCOORD1) : COLOR {
     return float4(tex2D(TexSampler, tex).rgb * shade, 1.0f);
 }
 

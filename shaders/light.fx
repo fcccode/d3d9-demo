@@ -16,13 +16,13 @@ uniform extern float  g_specular_power;
 uniform extern texture g_texture;
 
 sampler TexSampler = sampler_state {
-    Texture   = <g_texture>;
-    MinFilter = Anisotropic;
-    MagFilter = LINEAR;
-    MipFilter = LINEAR;
+    Texture       = <g_texture>;
+    MinFilter     = Anisotropic;
+    MagFilter     = LINEAR;
+    MipFilter     = LINEAR;
     MaxAnisotropy = 8;
-    AddressU  = WRAP;
-    AddressV  = WRAP;
+    AddressU      = WRAP;
+    AddressV      = WRAP;
 };
 
 struct OutputVS {
@@ -32,21 +32,21 @@ struct OutputVS {
     float2 tex      : TEXCOORD0;
 };
 
-OutputVS LightVS(float3 pos : POSITION0,
+OutputVS LightVS(float3 pos    : POSITION0,
                  float3 normal : NORMAL0,
-                 float2 tex: TEXCOORD0) {
+                 float2 tex    : TEXCOORD0) {
     OutputVS output;
     output.pos = mul(float4(pos, 1.0f), g_wvp);
     output.tex = tex;
 
     float3 normal_world = mul(float4(normal, 0.0f), g_world_it).xyz;
     normal_world = normalize(normal_world);
-    float3 pos_world  = mul(float4(pos, 1.0f), g_world).xyz;
+    float3 pos_world = mul(float4(pos, 1.0f), g_world).xyz;
 
     float3 to_eye = normalize(g_eye_pos - pos_world);
     float3 reflection = reflect(-g_light_direction, normal_world);
 
-    float t  = pow(max(dot(reflection, to_eye), 0.0f), g_specular_power);
+    float t = pow(max(dot(reflection, to_eye), 0.0f), g_specular_power);
     float s = max(dot(g_light_direction, normal_world), 0.0f);
 
     float3 specular = t * (g_specular_mtrl * g_specular_light).rgb;

@@ -261,8 +261,8 @@ void Terrain::build_effect(const char *effect) {
         FATAL((const char *)errors->GetBufferPointer());
     }
 
-    m_fx_tech       = m_effect->GetTechniqueByName("TerrainTech");
-    m_fx_view_proj  = m_effect->GetParameterByName(NULL, "g_view_proj");
+    m_fx_tech      = m_effect->GetTechniqueByName("TerrainTech");
+    m_fx_view_proj = m_effect->GetParameterByName(NULL, "g_view_proj");
     m_fx_light_dir = m_effect->GetParameterByName(NULL, "g_light_dir");
-    m_fx_texture = m_effect->GetParameterByName(NULL, "g_texture");
+    m_fx_texture   = m_effect->GetParameterByName(NULL, "g_texture");
 }

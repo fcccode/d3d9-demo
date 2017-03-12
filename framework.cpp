@@ -9,7 +9,7 @@
 static bool g_inited;
 static bool g_paused;
 
-// directinput stuffs
+// directinput stuff
 
 static IDirectInput8 *g_input;
 static IDirectInputDevice8 *g_keyboard;
@@ -40,7 +40,7 @@ static void input_free() {
     g_input->Release();
 }
 
-// direct3d stuffs
+// direct3d stuff
 
 static IDirect3D9 *g_d3dobject;
 static IDirect3DDevice9 *g_direct3d;
@@ -130,7 +130,7 @@ static bool direct3d_is_lost() {
     }
 }
 
-// window stuffs
+// window stuff
 
 static LRESULT CALLBACK window_proc(HWND, UINT, WPARAM, LPARAM);
 static void window_on_resize(WPARAM, LPARAM);
