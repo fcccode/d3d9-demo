@@ -145,7 +145,7 @@ static void window_init(HWND *window, const char *title,
     wc.lpfnWndProc   = window_proc;
     wc.cbClsExtra    = 0;
     wc.cbWndExtra    = 0;
-    wc.hInstance     = GetModuleHandleW(NULL);
+    wc.hInstance     = GetModuleHandle(NULL);
     wc.hIcon         = LoadIcon(NULL, IDI_APPLICATION);
     wc.hCursor       = LoadCursor(NULL, IDC_ARROW);
     wc.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
@@ -156,12 +156,12 @@ static void window_init(HWND *window, const char *title,
     }
 
     RECT rect = {0, 0, width, height};
-    AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW, 0);
+    AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW, false);
     width = rect.right - rect.left;
     height = rect.bottom - rect.top;
     *window = CreateWindow(wc_name, title, WS_OVERLAPPEDWINDOW,
                            CW_USEDEFAULT, CW_USEDEFAULT, width, height,
-                           NULL, NULL, GetModuleHandleW(NULL), NULL);
+                           NULL, NULL, GetModuleHandle(NULL), NULL);
     if (*window == NULL) {
         FATAL("CreateWindow");
     }
@@ -289,7 +289,7 @@ static void window_fullscreen(HWND window, bool enable) {
 
 // event loop
 
-static int eventloop() {
+static void eventloop() {
     LARGE_INTEGER frequency;
     QueryPerformanceFrequency(&frequency);
     float period = 1.0f / frequency.QuadPart;
@@ -300,7 +300,7 @@ static int eventloop() {
     MSG message;
     message.message = WM_NULL;
     while (message.message != WM_QUIT) {
-        if (PeekMessage(&message, 0, 0, 0, PM_REMOVE)) {
+        if (PeekMessage(&message, NULL, 0, 0, PM_REMOVE)) {
             TranslateMessage(&message);
             DispatchMessage(&message);
         } else {
@@ -316,7 +316,6 @@ static int eventloop() {
             }
         }
     }
-    return message.wParam;
 }
 
 // main function
