@@ -10,7 +10,6 @@
 
 Crate::Crate(IDirect3DDevice9 *direct3d, D3DXVECTOR3 center) {
     const char *texture = "resources/crate.jpg";
-    const char *effect = "shaders/light.fx";
 
     m_direct3d = direct3d;
 
@@ -25,7 +24,7 @@ Crate::Crate(IDirect3DDevice9 *direct3d, D3DXVECTOR3 center) {
 
     build_cube();
 
-    m_effect = new Effect(m_direct3d, effect);
+    m_effect = new Effect(m_direct3d);
 
     m_material.ambient = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
     m_material.diffuse = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
@@ -85,7 +84,7 @@ D3DXVECTOR3 Crate::rotate(Terrain *terrain, float dtime) {
     if (m_elapsed > m_period) {
         m_elapsed -= m_period;
     }
-    float radian = m_elapsed / m_period * 2.0f * D3DX_PI;
+    float radian = (m_elapsed / m_period) * (2.0f * D3DX_PI);
     D3DXMatrixRotationY(&operation, radian);
     m_world *= operation;
 
@@ -100,8 +99,8 @@ D3DXVECTOR3 Crate::rotate(Terrain *terrain, float dtime) {
     m_prev_pos = m_curr_pos;
     m_curr_pos = D3DXVECTOR3(x, y, z);
     if (is_initial) {
-        is_initial = false;
         m_prev_pos = m_curr_pos;
+        is_initial = false;
     }
 
     return m_curr_pos - m_prev_pos;
@@ -113,11 +112,7 @@ float Crate::get_height() {
 
 bool Crate::is_near(D3DXVECTOR3 pos) {
     D3DXVECTOR3 diff = m_curr_pos - pos;
-    if (fabs(diff.x) <= m_scale * 2.0f && fabs(diff.z) <= m_scale * 2.0f) {
-        return true;
-    } else {
-        return false;
-    }
+    return (fabs(diff.x) <= m_scale * 2.0f && fabs(diff.z) <= m_scale * 2.0f);
 }
 
 void Crate::build_cube() {

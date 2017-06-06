@@ -84,11 +84,11 @@ float Terrain::get_height(float x, float z) {
     float r_diff = r - row;
     float c_diff = c - col;
 
-    if (r_diff + c_diff < 1.0f) {   // upper triangle
+    if (r_diff + c_diff < 1.0f) {  // upper triangle
         float uy = B - A;
         float vy = C - A;
         return A + c_diff * uy + r_diff * vy;
-    } else {                        // lower triangle
+    } else {                       // lower triangle
         float uy = C - D;
         float vy = B - D;
         return D + (1.0f - c_diff) * uy + (1.0f - r_diff) * vy;
@@ -114,7 +114,6 @@ void Terrain::load_heightmap(const char *himap, int rows, int cols,
             m_heightmap[i][j] = buffer[index] * scale + offset;
         }
     }
-
     delete[] buffer;
 
     smooth_heightmap();

@@ -26,8 +26,8 @@ private:
     float m_body_bias;
     float m_head_bias;
     ID3DXMesh *m_sphere;
-    IDirect3DTexture9* m_body_tex;
-    IDirect3DTexture9* m_head_tex;
+    IDirect3DTexture9 *m_body_tex;
+    IDirect3DTexture9 *m_head_tex;
     Effect *m_effect;
     Material m_material;
 };

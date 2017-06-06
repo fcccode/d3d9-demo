@@ -5,7 +5,8 @@
 #include "light.h"
 #include "error.h"
 
-Effect::Effect(IDirect3DDevice9 *direct3d, const char *effect) {
+Effect::Effect(IDirect3DDevice9 *direct3d) {
+    const char *effect = "shaders/light.fx";
     ID3DXBuffer *errors = NULL;
     OK(D3DXCreateEffectFromFile(direct3d, effect, NULL, NULL,
                                 D3DXSHADER_DEBUG, NULL, &m_effect, &errors));

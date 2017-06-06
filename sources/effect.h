@@ -13,7 +13,7 @@ struct Material {
 
 class Effect {
 public:
-    Effect(IDirect3DDevice9 *direct3d, const char *effect);
+    Effect(IDirect3DDevice9 *direct3d);
     ~Effect();
     void set_technique();
     void set_states(D3DXVECTOR3 cam_pos, D3DXMATRIX world, D3DXMATRIX view_proj,

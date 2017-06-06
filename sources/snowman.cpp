@@ -12,7 +12,6 @@ Snowman::Snowman(IDirect3DDevice9 *direct3d, D3DXVECTOR3 pos) {
     int stacks = 30;
     const char *body_tex = "resources/body.jpg";
     const char *head_tex = "resources/head.jpg";
-    const char *effect = "shaders/light.fx";
 
     m_direct3d = direct3d;
     m_pos = pos;
@@ -26,7 +25,7 @@ Snowman::Snowman(IDirect3DDevice9 *direct3d, D3DXVECTOR3 pos) {
     OK(D3DXCreateTextureFromFile(m_direct3d, body_tex, &m_body_tex));
     OK(D3DXCreateTextureFromFile(m_direct3d, head_tex, &m_head_tex));
     build_tex_coords();
-    m_effect = new Effect(m_direct3d, effect);
+    m_effect = new Effect(m_direct3d);
     m_material.ambient = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
     m_material.diffuse = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
     m_material.specular = D3DXCOLOR(0.0f, 0.0f, 0.0f, 1.0f);
@@ -49,9 +48,6 @@ void Snowman::on_reset() {
 }
 
 void Snowman::render(D3DXVECTOR3 cam_pos, D3DXMATRIX view_proj) {
-    D3DXMATRIX world;
-    D3DXMATRIX operation;
-
     m_effect->set_technique();
 
     UINT passes;
@@ -59,6 +55,9 @@ void Snowman::render(D3DXVECTOR3 cam_pos, D3DXMATRIX view_proj) {
     OK(effect->Begin(&passes, 0));
     OK(effect->BeginPass(0));
     OK(m_direct3d->SetRenderState(D3DRS_WRAP0, D3DWRAP_U));
+
+    D3DXMATRIX world;
+    D3DXMATRIX operation;
 
     // draw body
     D3DXMatrixIdentity(&world);
