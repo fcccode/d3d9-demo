@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <windows.h>
 #include <d3d9.h>
 #include <dinput.h>
@@ -19,7 +20,7 @@ static void input_init(HWND window) {
     DWORD coop = DISCL_FOREGROUND | DISCL_NONEXCLUSIVE;
 
     OK(DirectInput8Create(GetModuleHandle(NULL), DIRECTINPUT_VERSION,
-                          IID_IDirectInput8, (LPVOID *)&g_input, NULL));
+                          IID_IDirectInput8, (LPVOID*)&g_input, NULL));
 
     OK(g_input->CreateDevice(GUID_SysKeyboard, &g_keyboard, NULL));
     OK(g_keyboard->SetDataFormat(&c_dfDIKeyboard));
@@ -49,13 +50,10 @@ static D3DPRESENT_PARAMETERS g_d3dpresent;
 static void direct3d_check(D3DDEVTYPE);
 
 static void direct3d_init(HWND window) {
-    D3DDEVTYPE type = D3DDEVTYPE_HAL;
-
     g_d3dobject = Direct3DCreate9(D3D_SDK_VERSION);
-    if (g_d3dobject == NULL) {
-        FATAL("Direct3DCreate9");
-    }
+    assert(g_d3dobject != NULL);
 
+    D3DDEVTYPE type = D3DDEVTYPE_HAL;
     direct3d_check(type);
 
     g_d3dpresent.BackBufferWidth            = 0;
@@ -72,6 +70,7 @@ static void direct3d_init(HWND window) {
     g_d3dpresent.Flags                      = 0;
     g_d3dpresent.FullScreen_RefreshRateInHz = D3DPRESENT_RATE_DEFAULT;
     g_d3dpresent.PresentationInterval       = D3DPRESENT_INTERVAL_IMMEDIATE;
+
     OK(g_d3dobject->CreateDevice(D3DADAPTER_DEFAULT, type, window,
                                  D3DCREATE_HARDWARE_VERTEXPROCESSING,
                                  &g_d3dpresent, &g_direct3d));
@@ -92,16 +91,10 @@ static void direct3d_check(D3DDEVTYPE type) {
                                     D3DFMT_X8R8G8B8, D3DFMT_X8R8G8B8, false));
     D3DCAPS9 caps;
     OK(g_d3dobject->GetDeviceCaps(D3DADAPTER_DEFAULT, type, &caps));
-    if ((caps.DevCaps & D3DDEVCAPS_HWTRANSFORMANDLIGHT) == 0) {
-        FATAL("D3DDEVCAPS_HWTRANSFORMANDLIGHT");
-    }
+    assert((caps.DevCaps & D3DDEVCAPS_HWTRANSFORMANDLIGHT) != 0);
     // check for shader version support
-    if (caps.VertexShaderVersion < D3DVS_VERSION(2, 0)) {
-        FATAL("VertexShaderVersion");
-    }
-    if (caps.PixelShaderVersion < D3DPS_VERSION(2, 0)) {
-        FATAL("PixelShaderVersion");
-    }
+    assert(caps.VertexShaderVersion >= D3DVS_VERSION(2, 0));
+    assert(caps.PixelShaderVersion >= D3DPS_VERSION(2, 0));
 }
 
 static void direct3d_on_lost() {
@@ -120,7 +113,7 @@ static bool direct3d_is_lost() {
         Sleep(20);
         return true;
     } else if (result == D3DERR_DRIVERINTERNALERROR) {
-        FATAL("D3DERR_DRIVERINTERNALERROR");
+        assert(0);
         return true;
     } else if (result == D3DERR_DEVICENOTRESET) {
         direct3d_on_lost();
@@ -151,62 +144,59 @@ static void window_init(HWND *window, const char *title,
     wc.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
     wc.lpszMenuName  = NULL;
     wc.lpszClassName = wc_name;
-    if (RegisterClass(&wc) == 0) {
-        FATAL("RegisterClass");
-    }
+
+    ATOM id = RegisterClass(&wc);
+    assert(id != 0);
 
     RECT rect = {0, 0, width, height};
     AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW, false);
     width = rect.right - rect.left;
     height = rect.bottom - rect.top;
+
     *window = CreateWindow(wc_name, title, WS_OVERLAPPEDWINDOW,
                            CW_USEDEFAULT, CW_USEDEFAULT, width, height,
                            NULL, NULL, GetModuleHandle(NULL), NULL);
-    if (*window == NULL) {
-        FATAL("CreateWindow");
-    }
+    assert(*window != NULL);
 
     ShowWindow(*window, SW_SHOW);
     UpdateWindow(*window);
 }
 
-static LRESULT CALLBACK window_proc(HWND hwnd, UINT uMsg,
+static LRESULT CALLBACK window_proc(HWND hWnd, UINT uMsg,
                                     WPARAM wParam, LPARAM lParam) {
     if (g_inited == false) {
-        return DefWindowProc(hwnd, uMsg, wParam, lParam);
+        return DefWindowProc(hWnd, uMsg, wParam, lParam);
     } else {
         RECT rect;
 
         switch (uMsg) {
             case WM_ACTIVATE:
-                g_paused = (LOWORD(wParam) == WA_INACTIVE) ? true : false;
+                g_paused = (LOWORD(wParam) == WA_INACTIVE);
                 return 0;
             case WM_SIZE:
                 window_on_resize(wParam, lParam);
                 return 0;
             case WM_EXITSIZEMOVE:
-                GetClientRect(hwnd, &rect);
+                GetClientRect(hWnd, &rect);
                 g_d3dpresent.BackBufferWidth  = rect.right;
                 g_d3dpresent.BackBufferHeight = rect.bottom;
                 direct3d_on_lost();
                 return 0;
             case WM_CLOSE:
-                DestroyWindow(hwnd);
+                DestroyWindow(hWnd);
                 return 0;
-
             case WM_DESTROY:
                 PostQuitMessage(0);
                 return 0;
-
             case WM_KEYDOWN:
                 if (wParam == VK_F11) {
-                    window_fullscreen(hwnd, true);
+                    window_fullscreen(hWnd, true);
                 } else if (wParam == VK_ESCAPE) {
-                    window_fullscreen(hwnd, false);
+                    window_fullscreen(hWnd, false);
                 }
                 return 0;
         }
-        return DefWindowProc(hwnd, uMsg, wParam, lParam);
+        return DefWindowProc(hWnd, uMsg, wParam, lParam);
     }
 }
 
@@ -309,7 +299,7 @@ static void eventloop() {
             } else if (direct3d_is_lost() == false) {
                 LARGE_INTEGER curr_time;
                 QueryPerformanceCounter(&curr_time);
-                float dcount = curr_time.QuadPart - prev_time.QuadPart;
+                float dcount = (float)(curr_time.QuadPart - prev_time.QuadPart);
                 float dtime = dcount * period;
                 on_render(dtime);
                 prev_time = curr_time;

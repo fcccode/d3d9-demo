@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <math.h>
 #include <vector>
 #include <d3d9.h>
@@ -10,14 +11,14 @@
 using std::vector;
 
 Terrain::Terrain(IDirect3DDevice9 *direct3d) {
-    const char *himap  = "resources/heightmap.raw";
+    const char *himap = "resources/heightmap.raw";
     const char *ground = "resources/ground.jpg";
     const char *effect = "shaders/terrain.fx";
 
     int rows = 257;
     int cols = 257;
-    int drow = 10.0f;
-    int dcol = 10.0f;
+    int drow = 10;
+    int dcol = 10;
     float scale  = 3.0f;
     float offset = 0.0f;
 
@@ -61,11 +62,7 @@ void Terrain::render(D3DXMATRIX view_proj) {
 }
 
 bool Terrain::is_bounded(float x, float z) {
-    if (fabs(x) < (m_width * 0.45f) && fabs(z) < (m_depth * 0.45f)) {
-        return true;
-    } else {
-        return false;
-    }
+    return (fabs(x) < (m_width * 0.45f) && fabs(z) < (m_depth * 0.45f));
 }
 
 float Terrain::get_height(float x, float z) {
@@ -104,14 +101,11 @@ void Terrain::load_heightmap(const char *himap, int rows, int cols,
 
     int num_elems = rows * cols;
     unsigned char *buffer = new unsigned char[num_elems];
+
     FILE *file = fopen(himap, "rb");
-    if (file == NULL) {
-        FATAL("fopen");
-    }
+    assert(file != NULL);
     int count = fread(buffer, 1, num_elems, file);
-    if (count != num_elems) {
-        FATAL("fread");
-    }
+    assert(count == num_elems);
     fclose(file);
 
     for (int i = 0; i < rows; i++) {
@@ -120,6 +114,7 @@ void Terrain::load_heightmap(const char *himap, int rows, int cols,
             m_heightmap[i][j] = buffer[index] * scale + offset;
         }
     }
+
     delete[] buffer;
 
     smooth_heightmap();
@@ -180,8 +175,8 @@ void Terrain::build_params(int rows, int cols, int drow, int dcol) {
     m_cells_x = m_verts_x - 1;
     m_cells_z = m_verts_z - 1;
 
-    m_dx = dcol;
-    m_dz = drow;
+    m_dx = (float)dcol;
+    m_dz = (float)drow;
 
     m_width = m_cells_x * m_dx;
     m_depth = m_cells_z * m_dz;
@@ -223,12 +218,12 @@ void Terrain::build_grid(vector<D3DXVECTOR3> &vertices,
 
 void Terrain::write_vertices(vector<D3DXVECTOR3> &vertices, int num_verts) {
     Vertex *v;
-    OK(m_mesh->LockVertexBuffer(0, (LPVOID *)&v));
+    OK(m_mesh->LockVertexBuffer(0, (LPVOID*)&v));
     for (int k = 0; k < num_verts; k++) {
         int z = k / m_verts_x;
         int x = k % m_verts_x;
 
-        v[k].pos   = vertices[k];
+        v[k].pos = vertices[k];
         v[k].pos.y = m_heightmap[z][x];
 
         v[k].tex.x = +(v[k].pos.x - m_x_offset) / m_width;
@@ -239,7 +234,7 @@ void Terrain::write_vertices(vector<D3DXVECTOR3> &vertices, int num_verts) {
 
 void Terrain::write_indices(vector<DWORD> &indices, int num_faces) {
     DWORD *i;
-    OK(m_mesh->LockIndexBuffer(0, (LPVOID *)&i));
+    OK(m_mesh->LockIndexBuffer(0, (LPVOID*)&i));
     DWORD *a;
     OK(m_mesh->LockAttributeBuffer(0, &a));
     for (int k = 0; k < num_faces; k++) {
@@ -257,12 +252,10 @@ void Terrain::build_effect(const char *effect) {
     ID3DXBuffer *errors = NULL;
     OK(D3DXCreateEffectFromFile(m_direct3d, effect, NULL, NULL,
                                 D3DXSHADER_DEBUG, NULL, &m_effect, &errors));
-    if (errors != NULL) {
-        FATAL((const char *)errors->GetBufferPointer());
-    }
+    assert(errors == NULL);
 
-    m_fx_tech      = m_effect->GetTechniqueByName("TerrainTech");
+    m_fx_tech = m_effect->GetTechniqueByName("TerrainTech");
     m_fx_view_proj = m_effect->GetParameterByName(NULL, "g_view_proj");
     m_fx_light_dir = m_effect->GetParameterByName(NULL, "g_light_dir");
-    m_fx_texture   = m_effect->GetParameterByName(NULL, "g_texture");
+    m_fx_texture = m_effect->GetParameterByName(NULL, "g_texture");
 }

@@ -14,16 +14,18 @@
 
 static IDirect3DDevice9 *g_direct3d;
 
-static Input   *g_input;
-static Camera  *g_camera;
-static Crate   *g_crate;
-static Skybox  *g_skybox;
+static Input *g_input;
+static Camera *g_camera;
+static Crate *g_crate;
+static Skybox *g_skybox;
 static Snowman *g_snowman0;
 static Snowman *g_snowman1;
 static Terrain *g_terrain;
 
 void on_config(const char **title, int *width, int *height) {
     *title = "Snowman";
+    (void)width;
+    (void)height;
 }
 
 void on_setup(IDirect3DDevice9 *direct3d, int width, int height,
@@ -33,18 +35,18 @@ void on_setup(IDirect3DDevice9 *direct3d, int width, int height,
     vertex_init(g_direct3d);
     light_init();
 
-    D3DXVECTOR3 camera_pos   = D3DXVECTOR3(-380.0f, 100.0f, 450.0f);
+    D3DXVECTOR3 camera_pos = D3DXVECTOR3(-380.0f, 100.0f, 450.0f);
     D3DXVECTOR3 crate_center = D3DXVECTOR3(-375.0f,  97.5f, 560.0f);
     D3DXVECTOR3 snowman0_pos = D3DXVECTOR3(-305.0f, 113.0f, 560.0f);
     D3DXVECTOR3 snowman1_pos = D3DXVECTOR3(-375.0f,  99.0f, 560.0f);
 
-    g_input    = new Input(keyboard, mouse);
-    g_camera   = new Camera(width * 1.0f / height, camera_pos);
-    g_crate    = new Crate(g_direct3d, crate_center);
-    g_skybox   = new Skybox(g_direct3d);
+    g_input = new Input(keyboard, mouse);
+    g_camera = new Camera(width * 1.0f / height, camera_pos);
+    g_crate = new Crate(g_direct3d, crate_center);
+    g_skybox = new Skybox(g_direct3d);
     g_snowman0 = new Snowman(g_direct3d, snowman0_pos);
     g_snowman1 = new Snowman(g_direct3d, snowman1_pos);
-    g_terrain  = new Terrain(g_direct3d);
+    g_terrain = new Terrain(g_direct3d);
 }
 
 void on_teardown() {

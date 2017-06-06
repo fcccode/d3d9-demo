@@ -4,19 +4,19 @@
 #include "terrain.h"
 
 Camera::Camera(float aspect, D3DXVECTOR3 pos) {
-    m_y_fov  = D3DX_PI * 0.25f;
+    m_y_fov = D3DX_PI * 0.25f;
     m_z_near = 0.01f;
-    m_z_far  = 5000.0f;
+    m_z_far = 5000.0f;
 
-    m_mov_speed  = 50.0f;
-    m_rot_ratio  = 150.0f;
+    m_mov_speed = 50.0f;
+    m_rot_ratio = 150.0f;
     m_cam_height = 2.5f;
 
-    m_pos   = pos;
+    m_pos = pos;
 
     m_right = D3DXVECTOR3(1.0f, 0.0f, 0.0f);
-    m_up    = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
-    m_look  = D3DXVECTOR3(0.0f, 0.0f, 1.0f);
+    m_up = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
+    m_look = D3DXVECTOR3(0.0f, 0.0f, 1.0f);
 
     D3DXMatrixIdentity(&m_view);
     D3DXMatrixIdentity(&m_proj);

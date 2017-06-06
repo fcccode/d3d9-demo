@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <d3d9.h>
 #include <d3dx9.h>
 #include "skybox.h"
@@ -53,11 +54,9 @@ void Skybox::build_effect(const char *effect) {
     ID3DXBuffer *errors = NULL;
     OK(D3DXCreateEffectFromFile(m_direct3d, effect, NULL, NULL,
                                 D3DXSHADER_DEBUG, NULL, &m_effect, &errors));
-    if (errors != NULL) {
-        FATAL((const char *)errors->GetBufferPointer());
-    }
+    assert(errors == NULL);
 
-    m_fx_tech   = m_effect->GetTechniqueByName("SkyTech");
-    m_fx_wvp    = m_effect->GetParameterByName(NULL, "g_wvp");
+    m_fx_tech = m_effect->GetTechniqueByName("SkyTech");
+    m_fx_wvp = m_effect->GetParameterByName(NULL, "g_wvp");
     m_fx_envmap = m_effect->GetParameterByName(NULL, "g_envmap");
 }

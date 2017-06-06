@@ -10,7 +10,7 @@
 
 Crate::Crate(IDirect3DDevice9 *direct3d, D3DXVECTOR3 center) {
     const char *texture = "resources/crate.jpg";
-    const char *effect  = "shaders/light.fx";
+    const char *effect = "shaders/light.fx";
 
     m_direct3d = direct3d;
 
@@ -27,8 +27,8 @@ Crate::Crate(IDirect3DDevice9 *direct3d, D3DXVECTOR3 center) {
 
     m_effect = new Effect(m_direct3d, effect);
 
-    m_material.ambient  = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-    m_material.diffuse  = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+    m_material.ambient = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+    m_material.diffuse = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
     m_material.specular = D3DXCOLOR(0.0f, 0.0f, 0.0f, 1.0f);
     m_material.specular_power = 8.0f;
 
@@ -130,7 +130,7 @@ void Crate::write_vertices() {
                                       0, D3DPOOL_MANAGED,
                                       &m_vertices, NULL));
     Vertex *v;
-    OK(m_vertices->Lock(0, 0, (void **)&v, 0));
+    OK(m_vertices->Lock(0, 0, (void**)&v, 0));
     // front face
     v[0] = Vertex(-1.0f, -1.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f);
     v[1] = Vertex(-1.0f,  1.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f);
@@ -169,7 +169,7 @@ void Crate::write_indices() {
                                      D3DFMT_INDEX16, D3DPOOL_MANAGED,
                                      &m_indices, 0));
     WORD *i;
-    OK(m_indices->Lock(0, 0, (void **)&i, 0));
+    OK(m_indices->Lock(0, 0, (void**)&i, 0));
     // front face
     i[0] = 0; i[1] = 1; i[2] = 2;
     i[3] = 0; i[4] = 2; i[5] = 3;

@@ -37,9 +37,9 @@ bool Input::button_down(int button) {
 }
 
 float Input::mouse_dx() {
-    return m_mouse_state.lX;
+    return (float)m_mouse_state.lX;
 }
 
 float Input::mouse_dy() {
-    return m_mouse_state.lY;
+    return (float)m_mouse_state.lY;
 }

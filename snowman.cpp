@@ -12,7 +12,7 @@ Snowman::Snowman(IDirect3DDevice9 *direct3d, D3DXVECTOR3 pos) {
     int stacks = 30;
     const char *body_tex = "resources/body.jpg";
     const char *head_tex = "resources/head.jpg";
-    const char *effect   = "shaders/light.fx";
+    const char *effect = "shaders/light.fx";
 
     m_direct3d = direct3d;
     m_pos = pos;
@@ -27,8 +27,8 @@ Snowman::Snowman(IDirect3DDevice9 *direct3d, D3DXVECTOR3 pos) {
     OK(D3DXCreateTextureFromFile(m_direct3d, head_tex, &m_head_tex));
     build_tex_coords();
     m_effect = new Effect(m_direct3d, effect);
-    m_material.ambient  = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-    m_material.diffuse  = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+    m_material.ambient = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+    m_material.diffuse = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
     m_material.specular = D3DXCOLOR(0.0f, 0.0f, 0.0f, 1.0f);
     m_material.specular_power = 8.0f;
 }
@@ -102,8 +102,8 @@ void Snowman::build_tex_coords() {
     OK(m_sphere->CloneMesh(D3DXMESH_SYSTEMMEM, elems, m_direct3d, &temp));
     m_sphere->Release();
 
-    Vertex* vert_buff;
-    OK(temp->LockVertexBuffer(0, (LPVOID *)&vert_buff));
+    Vertex *vert_buff;
+    OK(temp->LockVertexBuffer(0, (LPVOID*)&vert_buff));
     int num_verts = temp->GetNumVertices();
     for (int i = 0; i < num_verts; i++) {
         D3DXVECTOR3 pos = vert_buff[i].pos;

@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <d3d9.h>
 #include <d3dx9.h>
 #include "effect.h"
@@ -8,28 +9,26 @@ Effect::Effect(IDirect3DDevice9 *direct3d, const char *effect) {
     ID3DXBuffer *errors = NULL;
     OK(D3DXCreateEffectFromFile(direct3d, effect, NULL, NULL,
                                 D3DXSHADER_DEBUG, NULL, &m_effect, &errors));
-    if (errors != NULL) {
-        FATAL((const char *)errors->GetBufferPointer());
-    }
+    assert(errors == NULL);
 
-    m_fx_tech            = m_effect->GetTechniqueByName("LightTech");
+    m_fx_tech = m_effect->GetTechniqueByName("LightTech");
 
-    m_fx_eye_pos         = m_effect->GetParameterByName(NULL, "g_eye_pos");
-    m_fx_world           = m_effect->GetParameterByName(NULL, "g_world");
-    m_fx_world_it        = m_effect->GetParameterByName(NULL, "g_world_it");
-    m_fx_wvp             = m_effect->GetParameterByName(NULL, "g_wvp");
+    m_fx_eye_pos = m_effect->GetParameterByName(NULL, "g_eye_pos");
+    m_fx_world = m_effect->GetParameterByName(NULL, "g_world");
+    m_fx_world_it = m_effect->GetParameterByName(NULL, "g_world_it");
+    m_fx_wvp = m_effect->GetParameterByName(NULL, "g_wvp");
 
-    m_fx_ambient_light   = m_effect->GetParameterByName(NULL, "g_ambient_light");
-    m_fx_diffuse_light   = m_effect->GetParameterByName(NULL, "g_diffuse_light");
-    m_fx_specular_light  = m_effect->GetParameterByName(NULL, "g_specular_light");
+    m_fx_ambient_light = m_effect->GetParameterByName(NULL, "g_ambient_light");
+    m_fx_diffuse_light = m_effect->GetParameterByName(NULL, "g_diffuse_light");
+    m_fx_specular_light = m_effect->GetParameterByName(NULL, "g_specular_light");
     m_fx_light_direction = m_effect->GetParameterByName(NULL, "g_light_direction");
 
-    m_fx_ambient_mtrl    = m_effect->GetParameterByName(NULL, "g_ambient_mtrl");
-    m_fx_diffuse_mtrl    = m_effect->GetParameterByName(NULL, "g_diffuse_mtrl");
-    m_fx_specular_mtrl   = m_effect->GetParameterByName(NULL, "g_specular_mtrl");
-    m_fx_specular_power  = m_effect->GetParameterByName(NULL, "g_specular_power");
+    m_fx_ambient_mtrl = m_effect->GetParameterByName(NULL, "g_ambient_mtrl");
+    m_fx_diffuse_mtrl = m_effect->GetParameterByName(NULL, "g_diffuse_mtrl");
+    m_fx_specular_mtrl = m_effect->GetParameterByName(NULL, "g_specular_mtrl");
+    m_fx_specular_power = m_effect->GetParameterByName(NULL, "g_specular_power");
 
-    m_fx_texture         = m_effect->GetParameterByName(NULL, "g_texture");
+    m_fx_texture = m_effect->GetParameterByName(NULL, "g_texture");
 }
 
 Effect::~Effect() {
