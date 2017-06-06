@@ -19,7 +19,7 @@ Terrain::Terrain(IDirect3DDevice9 *direct3d) {
     int cols = 257;
     int drow = 10;
     int dcol = 10;
-    float scale  = 3.0f;
+    float scale = 3.0f;
     float offset = 0.0f;
 
     m_direct3d = direct3d;
