@@ -4,6 +4,6 @@
 #include <assert.h>
 #include <winerror.h>
 
-#define OK(command) assert(SUCCEEDED(command))
+#define OK(command) (SUCCEEDED(command) ? 0 : assert(0), 0)
 
 #endif
